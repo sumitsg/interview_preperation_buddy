@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:interview_preperation_buddy/core/constants/interview_constants.dart';
 import 'package:interview_preperation_buddy/core/enums/answer_phase.dart';
 import 'package:interview_preperation_buddy/core/models/answer_timer_state.dart';
 
 class AnswerTimerManager {
-  static const int preparationSeconds = 15;
-  static const int waitingSeconds = 15;
-  static const int warningSeconds = 15;
-  static const int silenceTimeoutSeconds = 15;
+  static const int preparationSeconds = InterviewConstants.preparationSeconds;
+  static const int waitingSeconds = InterviewConstants.autoSkipSeconds;
+  static const int warningSeconds = InterviewConstants.warningSeconds;
+  static const int silenceTimeoutSeconds =
+      InterviewConstants.silenceTimeoutSeconds;
 
   final _controller = StreamController<AnswerTimerState>.broadcast();
 
