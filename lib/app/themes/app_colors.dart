@@ -52,4 +52,8 @@ class AppColors {
   // Dark theme — outline & shadow
   static const Color darkOutline = Color(0xFF334155);
   static const Color darkShadow = Color(0x40000000);
+
+  //
+  static const strengthBackground = Color(0xFFF3F4FF);
+  static const improvementBackground = Color(0xFFFFECEC);
 }
