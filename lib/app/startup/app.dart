@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:interview_preperation_buddy/app/startup/splash/splash_screens.dart';
-
+import 'package:interview_preperation_buddy/app/themes/app_theme.dart';
 import '../../feature/interview/bloc/interview_bloc.dart';
 import '../../feature/interview/ui/interview_setup_page.dart';
 import '../di/injection_container.dart';
@@ -20,9 +19,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        ),
+        theme: AppTheme.lightTheme,
         home: const InterviewSetupPage(),
       ),
     );
