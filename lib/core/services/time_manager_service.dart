@@ -6,20 +6,23 @@ import 'package:interview_preperation_buddy/core/enums/answer_phase.dart';
 import 'package:interview_preperation_buddy/core/models/answer_timer_state.dart';
 
 class AnswerTimerManager {
-  static const int preparationSeconds = InterviewConstants.preparationSeconds;
-  static const int waitingSeconds = InterviewConstants.autoSkipSeconds;
-  static const int warningSeconds = InterviewConstants.warningSeconds;
-  static const int silenceTimeoutSeconds =
-      InterviewConstants.silenceTimeoutSeconds;
+  static const int readingSeconds = InterviewConstants.preparationSeconds;
 
-  final _controller = StreamController<AnswerTimerState>.broadcast();
+  static const int waitingSeconds = InterviewConstants.warningSeconds;
+
+  static const int popupSeconds = InterviewConstants.autoSkipSeconds;
+
+  static const int silenceSeconds = InterviewConstants.silenceTimeoutSeconds;
+
+  final StreamController<AnswerTimerState> _controller =
+      StreamController.broadcast();
 
   Stream<AnswerTimerState> get stream => _controller.stream;
 
-  Timer? _timer;
+  Timer? _mainTimer;
+  Timer? _warningTimer;
 
   DateTime? _answerStartedAt;
-  DateTime? _lastSpeechAt;
 
   Duration _speakingDuration = Duration.zero;
 
@@ -38,48 +41,167 @@ class AnswerTimerManager {
   );
 
   bool get _showSkipButton =>
-      _phase == AnswerPhase.waitingWarning ||
+      _phase == AnswerPhase.startRecordingWarning ||
       _phase == AnswerPhase.speechWarning;
 
-  void startQuestionFlow() {
-    _cancelTimer();
+  // ---------------------------------------------------------------------------
+  // PUBLIC API
+  // ---------------------------------------------------------------------------
 
-    _hasSpoken = false;
-    _speakingDuration = Duration.zero;
-    _answerStartedAt = null;
-    _lastSpeechAt = null;
+  void startQuestionFlow() {
+    _reset();
 
     _startReadingPhase();
   }
 
   void startAnswer({required Duration answerDuration}) {
-    _cancelTimer();
+    _cancelAllTimers();
 
     _phase = AnswerPhase.answering;
+
     _remainingSeconds = answerDuration.inSeconds;
 
     _answerStartedAt = DateTime.now();
-    _lastSpeechAt = DateTime.now();
+
+    _hasSpoken = false;
+
+    _speakingDuration = Duration.zero;
 
     _emit();
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _remainingSeconds--;
+    _mainTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _handleAnswerTick(),
+    );
+  }
 
-      if (_answerStartedAt != null) {
-        _speakingDuration = DateTime.now().difference(_answerStartedAt!);
-      }
+  /// Call from STT whenever user speaks.
+  void onSpeechDetected() {
+    _hasSpoken = true;
 
-      if (!_hasSpoken &&
-          _lastSpeechAt != null &&
-          DateTime.now().difference(_lastSpeechAt!).inSeconds >=
-              silenceTimeoutSeconds) {
-        _startSpeechWarning();
+    if (_phase == AnswerPhase.speechWarning) {
+      continueRecording();
+    }
+  }
+
+  void continueRecording() {
+    _cancelWarningTimer();
+
+    _phase = AnswerPhase.answering;
+
+    _emit();
+
+    _mainTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _handleAnswerTick(),
+    );
+  }
+
+  void complete() {
+    _cancelAllTimers();
+
+    if (_answerStartedAt != null) {
+      _speakingDuration = DateTime.now().difference(_answerStartedAt!);
+    }
+
+    _phase = AnswerPhase.completed;
+
+    _emit();
+  }
+
+  void skip() {
+    _cancelAllTimers();
+
+    _phase = AnswerPhase.skipped;
+
+    _emit();
+  }
+
+  void dispose() {
+    _cancelAllTimers();
+    _controller.close();
+  }
+
+  // ---------------------------------------------------------------------------
+  // QUESTION FLOW
+  // ---------------------------------------------------------------------------
+
+  void _startReadingPhase() {
+    _phase = AnswerPhase.readingQuestion;
+
+    _remainingSeconds = readingSeconds;
+
+    _emit();
+
+    _startCountdown(seconds: readingSeconds, onCompleted: _startWaitingPhase);
+  }
+
+  void _startWaitingPhase() {
+    _phase = AnswerPhase.waitingToStart;
+
+    _remainingSeconds = waitingSeconds;
+
+    _emit();
+
+    _startCountdown(
+      seconds: waitingSeconds,
+      onCompleted: _showStartRecordingPopup,
+    );
+  }
+
+  void _showStartRecordingPopup() {
+    _phase = AnswerPhase.startRecordingWarning;
+
+    _remainingSeconds = popupSeconds;
+
+    _emit();
+
+    _startCountdown(seconds: popupSeconds, onCompleted: skip);
+  }
+
+  // ---------------------------------------------------------------------------
+  // ANSWER FLOW
+  // ---------------------------------------------------------------------------
+
+  void _handleAnswerTick() {
+    _remainingSeconds--;
+
+    if (_answerStartedAt != null) {
+      _speakingDuration = DateTime.now().difference(_answerStartedAt!);
+
+      final secondsSinceStart = DateTime.now()
+          .difference(_answerStartedAt!)
+          .inSeconds;
+
+      if (!_hasSpoken && secondsSinceStart >= silenceSeconds) {
+        _showSpeechWarning();
         return;
       }
+    }
+
+    if (_remainingSeconds <= 0) {
+      complete();
+      return;
+    }
+
+    _emit();
+  }
+
+  void _showSpeechWarning() {
+    _cancelMainTimer();
+
+    _phase = AnswerPhase.speechWarning;
+
+    _remainingSeconds = popupSeconds;
+
+    _emit();
+
+    _warningTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _remainingSeconds--;
 
       if (_remainingSeconds <= 0) {
-        complete();
+        timer.cancel();
+        skip();
         return;
       }
 
@@ -87,94 +209,19 @@ class AnswerTimerManager {
     });
   }
 
-  void onSpeechDetected() {
-    _hasSpoken = true;
-    _lastSpeechAt = DateTime.now();
+  // ---------------------------------------------------------------------------
+  // HELPERS
+  // ---------------------------------------------------------------------------
 
-    if (_phase == AnswerPhase.speechWarning) {
-      _phase = AnswerPhase.answering;
-      _emit();
-    }
-  }
+  void _startCountdown({
+    required int seconds,
+    required VoidCallback onCompleted,
+  }) {
+    _cancelMainTimer();
 
-  void continueAfterSpeechWarning() {
-    _lastSpeechAt = DateTime.now();
-    _phase = AnswerPhase.answering;
-    _emit();
-  }
+    _remainingSeconds = seconds;
 
-  void restartAnswer() {
-    _hasSpoken = false;
-    _speakingDuration = Duration.zero;
-    _answerStartedAt = null;
-    _lastSpeechAt = null;
-  }
-
-  void complete() {
-    _cancelTimer();
-
-    if (_answerStartedAt != null) {
-      _speakingDuration = DateTime.now().difference(_answerStartedAt!);
-    }
-
-    _phase = AnswerPhase.completed;
-    _emit();
-  }
-
-  void skip() {
-    _cancelTimer();
-
-    _phase = AnswerPhase.skipped;
-    _emit();
-  }
-
-  void dispose() {
-    _cancelTimer();
-    _controller.close();
-  }
-
-  void _startReadingPhase() {
-    _phase = AnswerPhase.readingQuestion;
-    _remainingSeconds = preparationSeconds;
-
-    _emit();
-
-    _startCountdown(onCompleted: _startWaitingPhase);
-  }
-
-  void _startWaitingPhase() {
-    _phase = AnswerPhase.waitingToStart;
-    _remainingSeconds = waitingSeconds;
-
-    _emit();
-
-    _startCountdown(onCompleted: _startWaitingWarningPhase);
-  }
-
-  void _startWaitingWarningPhase() {
-    _phase = AnswerPhase.waitingWarning;
-    _remainingSeconds = warningSeconds;
-
-    _emit();
-
-    _startCountdown(onCompleted: skip);
-  }
-
-  void _startSpeechWarning() {
-    _cancelTimer();
-
-    _phase = AnswerPhase.speechWarning;
-    _remainingSeconds = warningSeconds;
-
-    _emit();
-
-    _startCountdown(onCompleted: skip);
-  }
-
-  void _startCountdown({required VoidCallback onCompleted}) {
-    _cancelTimer();
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _mainTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _remainingSeconds--;
 
       if (_remainingSeconds <= 0) {
@@ -187,7 +234,21 @@ class AnswerTimerManager {
     });
   }
 
+  void _reset() {
+    _cancelAllTimers();
+
+    _answerStartedAt = null;
+
+    _speakingDuration = Duration.zero;
+
+    _remainingSeconds = 0;
+
+    _hasSpoken = false;
+  }
+
   void _emit() {
+    if (_controller.isClosed) return;
+
     _controller.add(
       AnswerTimerState(
         phase: _phase,
@@ -199,8 +260,18 @@ class AnswerTimerManager {
     );
   }
 
-  void _cancelTimer() {
-    _timer?.cancel();
-    _timer = null;
+  void _cancelMainTimer() {
+    _mainTimer?.cancel();
+    _mainTimer = null;
+  }
+
+  void _cancelWarningTimer() {
+    _warningTimer?.cancel();
+    _warningTimer = null;
+  }
+
+  void _cancelAllTimers() {
+    _cancelMainTimer();
+    _cancelWarningTimer();
   }
 }
