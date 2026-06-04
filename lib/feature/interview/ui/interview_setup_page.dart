@@ -1,0 +1,163 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../bloc/interview_bloc.dart';
+import '../bloc/interview_event.dart';
+import '../bloc/interview_state.dart';
+import 'interview_page.dart';
+
+class InterviewSetupPage extends StatefulWidget {
+  const InterviewSetupPage({super.key});
+
+  @override
+  State<InterviewSetupPage> createState() =>
+      _InterviewSetupPageState();
+}
+
+class _InterviewSetupPageState
+    extends State<InterviewSetupPage> {
+
+  final _technologyController =
+  TextEditingController();
+
+  final _experienceController =
+  TextEditingController();
+
+  @override
+  void dispose() {
+    _technologyController.dispose();
+    _experienceController.dispose();
+    super.dispose();
+  }
+
+  void _startInterview() {
+    final technology =
+    _technologyController.text.trim();
+
+    final experience =
+    _experienceController.text.trim();
+
+    if (technology.isEmpty ||
+        experience.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please fill all fields',
+          ),
+        ),
+      );
+      return;
+    }
+
+    context.read<InterviewBloc>().add(
+      GenerateQuestionsEvent(
+        technology: technology,
+        experience: experience,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'AI Interviewer',
+        ),
+      ),
+      body: BlocConsumer<
+          InterviewBloc,
+          InterviewState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.error!,
+                ),
+              ),
+            );
+          }
+
+          if (state.questions.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const InterviewPage(),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Padding(
+            padding:
+            const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.stretch,
+              children: [
+
+                const SizedBox(height: 24),
+
+                TextField(
+                  controller:
+                  _technologyController,
+                  decoration:
+                  const InputDecoration(
+                    labelText:
+                    'Technology',
+                    hintText:
+                    'Flutter',
+                    border:
+                    OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller:
+                  _experienceController,
+                  keyboardType:
+                  TextInputType.number,
+                  decoration:
+                  const InputDecoration(
+                    labelText:
+                    'Experience (Years)',
+                    hintText:
+                    '4.6',
+                    border:
+                    OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed:
+                    state.isLoading
+                        ? null
+                        : _startInterview,
+                    child: state.isLoading
+                        ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child:
+                      CircularProgressIndicator(),
+                    )
+                        : const Text(
+                      'Start Interview',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

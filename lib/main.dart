@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:interview_preperation_buddy/app/startup/app.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+import 'app/di/injection_container.dart';
+import 'app/startup/app.dart';
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  await init(); // IMPORTANT
   runApp(const MyApp());
 }
