@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:interview_preperation_buddy/app/startup/splash/splash_screens.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
