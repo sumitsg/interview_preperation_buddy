@@ -16,6 +16,7 @@ class TechnologySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // technologies.sort((a, b) => a.length.compareTo(b.length));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

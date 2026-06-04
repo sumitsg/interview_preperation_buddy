@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:interview_preperation_buddy/app/themes/app_colors.dart';
 import 'package:interview_preperation_buddy/app/themes/app_text_style.dart';
+import 'package:interview_preperation_buddy/shared/widgets/app_button.dart';
+import 'package:interview_preperation_buddy/shared/widgets/app_text.dart';
 
 class InterviewSetupHeader extends StatelessWidget {
   const InterviewSetupHeader({super.key});
@@ -18,14 +20,11 @@ class InterviewSetupHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text('InterviewPro', style: AppTextStyles.headline3.copyWith(color: AppColors.primary)),
+          AppText('InterviewPro', style: AppTextStyles.headline3.copyWith(color: AppColors.primary)),
 
           const Spacer(),
 
-          if (isMobile)
-            IconButton(onPressed: () {}, icon: const Icon(Icons.settings_outlined))
-          else
-            TextButton.icon(onPressed: () {}, icon: const Icon(Icons.logout_outlined), label: const Text('Exit')),
+          TextButton.icon(onPressed: () {}, icon: const Icon(Icons.logout_outlined), label: const Text('Exit')),
         ],
       ),
     );
