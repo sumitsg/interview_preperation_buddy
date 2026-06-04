@@ -1,7 +1,7 @@
 enum AnswerPhase {
   readingQuestion,
   waitingToStart,
-  waitingWarning,
+  startRecordingWarning,
   answering,
   speechWarning,
   completed,
