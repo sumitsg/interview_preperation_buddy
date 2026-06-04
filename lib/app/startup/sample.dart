@@ -80,7 +80,7 @@ class _SamplePageState extends State<SamplePage> {
 
             const SizedBox(height: 12),
 
-            AppTextField(controller: focusController, hintText: 'Enter your focus area here...', maxLines: 4),
+            AppTextField(controller: focusController, hintText: 'Enter your focus area here...', maxLines: 4, onChanged: (String value) { },),
 
             const SizedBox(height: 24),
 
