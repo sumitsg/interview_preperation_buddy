@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:interview_preperation_buddy/app/themes/app_colors.dart';
@@ -10,8 +13,6 @@ class InterviewSetupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
-
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -52,7 +53,20 @@ class InterviewSetupHeader extends StatelessWidget {
 
     if (shouldExit ?? false) {
       print('Exit pressed');
-      SystemNavigator.pop();
+      closeApp();
+    }
+  }
+
+  Future<void> closeApp() async {
+    if (kIsWeb) return;
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      await SystemNavigator.pop();
+    } else {
+      // exit(0);
+      print('before');
+      exit(0);
+      print('after');
     }
   }
 }

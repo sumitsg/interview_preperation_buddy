@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:interview_preperation_buddy/core/services/stt_service.dart';
 import 'package:interview_preperation_buddy/core/services/tts_service.dart';
+import 'package:interview_preperation_buddy/feature/feedback/controller/bloc/interview_evaluation_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_bloc.dart';
@@ -26,7 +27,7 @@ Future<void> init() async {
 
   /// Bloc
   sl.registerFactory(() => InterviewBloc(sl()));
-  sl.registerFactory(() => InterviewSetupBloc());
+  sl.registerFactory(() => InterviewSetupBloc(sl()));
 
   sl.registerFactoryParam<InterviewQuestionBloc, List<QuestionAnswerEntity>, void>(
     (questions, _) => InterviewQuestionBloc(questions: questions),
@@ -35,4 +36,5 @@ Future<void> init() async {
   sl.registerFactory<TtsCubit>(() => TtsCubit());
   sl.registerFactory<QuestionSttBloc>(() => QuestionSttBloc());
   sl.registerFactory<QuestionTimerBloc>(() => QuestionTimerBloc());
+  sl.registerFactory<EvaluateInterviewBloc>(() => EvaluateInterviewBloc(sl()));
 }

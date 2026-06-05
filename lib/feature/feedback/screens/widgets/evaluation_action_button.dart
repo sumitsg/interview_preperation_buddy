@@ -18,12 +18,11 @@ class EvaluationActionButtons extends StatelessWidget {
 
         const SizedBox(height: 12),
 
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(onPressed: onFinish, child: const Text('Finish Process')),
-        ),
-
-        const SizedBox(height: 24),
+        // SizedBox(
+        //   width: double.infinity,
+        //   child: OutlinedButton(onPressed: onFinish, child: const Text('Finish Process')),
+        // ),
+        // const SizedBox(height: 24),
       ],
     );
   }
