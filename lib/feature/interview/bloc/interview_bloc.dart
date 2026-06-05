@@ -132,6 +132,7 @@ class InterviewBloc
       emit(
         state.copyWith(
           isLoading: false,
+          questions: [],
           error: e.toString(),
         ),
       );
