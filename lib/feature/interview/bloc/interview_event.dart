@@ -24,8 +24,15 @@ class GenerateQuestionsEvent extends InterviewEvent {
   ];
 }
 
-class SubmitAnswerEvent extends InterviewEvent {
+class SubmitAnswerEvent
+    extends InterviewEvent {
+
   final String answer;
 
-  const SubmitAnswerEvent(this.answer);
+  const SubmitAnswerEvent(
+      this.answer,
+      );
+
+  @override
+  List<Object?> get props => [answer];
 }

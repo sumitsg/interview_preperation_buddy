@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
+import '../../../app/di/injection_container.dart';
+import '../../repo/interview_repository.dart';
 import '../bloc/interview_bloc.dart';
 import '../bloc/interview_event.dart';
 import '../bloc/interview_state.dart';
@@ -100,6 +103,7 @@ class _InterviewSetupPageState
 
                 const SizedBox(height: 24),
 
+                TestEvaluateButton(),
                 TextField(
                   controller:
                   _technologyController,
@@ -158,6 +162,68 @@ class _InterviewSetupPageState
           );
         },
       ),
+    );
+  }
+}
+
+
+class TestEvaluateButton extends StatelessWidget {
+  const TestEvaluateButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () async {
+        final repo = sl<InterviewRepository>();
+
+        const testJson = '''
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "Explain StatelessWidget vs StatefulWidget in Flutter.",
+      "answer": "StatelessWidget is immutable and used when UI does not change."
+    },
+    {
+      "id": 2,
+      "question": "What is BuildContext in Flutter?",
+      "answer": "Used to locate widgets in widget tree."
+    },
+    {
+      "id": 3,
+      "question": "How would you build a list UI in Flutter?",
+      "answer": "Using Row, Column and ListView."
+    },
+    {
+      "id": 4,
+      "question": "How do you fetch API data in Flutter?",
+      "answer": ""
+    },
+    {
+      "id": 5,
+      "question": "How navigation works in Flutter?",
+      "answer": "Navigator.push and pop."
+    }
+  ]
+}
+''';
+
+        try {
+          final result = await repo.evaluateInterview(
+            technology: "Flutter",
+            experience: "4.6",
+            questionsAndAnswersJson: testJson,
+          );
+
+          debugPrint("OVERALL SCORE: ${result.overallScore}");
+          debugPrint("LEVEL: ${result.confidence}");
+          debugPrint("FEEDBACK: ${result.nextFocus}");
+
+        } catch (e) {
+          debugPrint("ERROR: $e");
+        }
+      },
+      child: const Text("Test AI Evaluation"),
     );
   }
 }
