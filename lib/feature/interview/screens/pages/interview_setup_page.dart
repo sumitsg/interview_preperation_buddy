@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:interview_preperation_buddy/app/themes/app_colors.dart';
 import 'package:interview_preperation_buddy/app/themes/app_text_style.dart';
 import 'package:interview_preperation_buddy/core/constants/interview_constants.dart';
 import 'package:interview_preperation_buddy/core/responsive/responsive.dart';
@@ -119,21 +120,34 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
                               SizedBox(height: 64),
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 12.0),
-                                child: BlocSelector<InterviewSetupBloc, InterviewSetupState, bool>(
-                                  selector: (state) => state.isFormValid,
-                                  builder: (context, isFormValid) {
+                                child: BlocConsumer<InterviewSetupBloc, InterviewSetupState>(
+                                  listener: (context, state) {
+                                    if (state.questions.isNotEmpty) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => EvaluationPage()),
+                                      );
+                                    } else {}
+                                  },
+                                  // selector: (state) => [state.isFormValid, state.isLoading],
+                                  builder: (context, state) {
+                                    if (state.isLoading == true) {
+                                      return Center(child: CircularProgressIndicator(color: AppColors.primary));
+                                    }
                                     return AppButton(
                                       width: double.maxFinite,
                                       title: "Start Interview",
-                                      onPressed: isFormValid
+                                      onPressed: state.isFormValid
                                           ? () {
                                               // context.read<InterviewSetupBloc>().add(StartInterviewPressed());
                                               final config = context.read<InterviewSetupBloc>().state.interviewConfig;
+                                              final technology = config['technology'] as String;
+                                              final experience = config['experience'] as String;
+                                              final focusArea = config['focusArea'] as String;
 
-                                              debugPrint("$config");
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => EvaluationPage()),
+                                              // calling the event to get teh question...
+                                              context.read<InterviewSetupBloc>().add(
+                                                GenerateQuestionsEvent(technology: technology, experience: experience),
                                               );
                                             }
                                           : null,
