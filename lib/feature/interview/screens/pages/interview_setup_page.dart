@@ -60,7 +60,7 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Center(child: AppText("Interview setup", style: AppTextStyles.bodyLarge)),
+                              Center(child: AppText("Interview setup", style: AppTextStyles.headline2)),
 
                               const SizedBox(height: 12),
 
@@ -68,11 +68,14 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
                               Center(
                                 child: AppText(
                                   "Configure your mock interview parameters",
-                                  style: AppTextStyles.headline2,
+                                  textAlign: TextAlign.center,
+                                  style: AppTextStyles.bodyLarge,
                                 ),
                               ),
 
                               //
+                              const SizedBox(height: 32),
+                              Divider(indent: 2, endIndent: 2),
                               const SizedBox(height: 32),
 
                               BlocSelector<InterviewSetupBloc, InterviewSetupState, String?>(
