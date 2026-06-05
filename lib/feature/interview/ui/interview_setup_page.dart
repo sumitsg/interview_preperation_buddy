@@ -190,7 +190,7 @@ class TestEvaluateButton extends StatelessWidget {
     {
       "id": 3,
       "question": "How would you build a list UI in Flutter?",
-      "answer": "Using Row, Column and ListView."
+      "answer": "list UI ko hum listview aur listview.builder use kr skte h aur bhut sare chije use kr skte h"
     },
     {
       "id": 4,
@@ -200,7 +200,7 @@ class TestEvaluateButton extends StatelessWidget {
     {
       "id": 5,
       "question": "How navigation works in Flutter?",
-      "answer": "Navigator.push and pop."
+      "answer": "iske liye Navigator.push and pop. kaam krta h "
     }
   ]
 }
