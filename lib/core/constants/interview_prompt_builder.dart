@@ -2,10 +2,7 @@ class InterviewPromptBuilder {
   /// =========================
   /// QUESTION GENERATION PROMPT
   /// =========================
-  static String generateQuestionsPrompt({
-    required String technology,
-    required String experience,
-  }) {
+  static String generateQuestionsPrompt({required String technology, required String experience}) {
     return '''
 Act as a Senior Technical Interviewer.
 
@@ -78,7 +75,8 @@ SCORING RULES:
   • Wrong answers
   • Missing logic
   • Vague explanations
-  • Empty answers
+  • Empty answers must be scored as 0
+  • null answers must be scored as 0
 
 ---
 

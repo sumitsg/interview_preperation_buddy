@@ -1,6 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/core/enums/tts_state.dart';
+import 'package:interview_preperation_buddy/feature/feedback/screens/pages/evaluation_page.dart';
+import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_event.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/quesion_stt_state.dart';
@@ -23,16 +27,13 @@ class QuestionBottomBar extends StatelessWidget {
     final isTtsPlaying = ttsState.status == TtsStatus.speaking;
     final isListening = sttState.isListening;
 
-    final showStart =
-        !isTtsPlaying && !isListening && sttState.transcript.isEmpty;
+    final showStart = !isTtsPlaying && !isListening && sttState.transcript.isEmpty;
 
     final showStop = !isTtsPlaying && isListening;
 
-    final showSubmit =
-        !isTtsPlaying && !isListening && sttState.transcript.trim().isNotEmpty;
+    final showSubmit = !isTtsPlaying && !isListening && sttState.transcript.trim().isNotEmpty;
 
-    final showRestart =
-        !isTtsPlaying && (isListening || sttState.transcript.isNotEmpty);
+    final showRestart = !isTtsPlaying && (isListening || sttState.transcript.isNotEmpty);
 
     final showRetry = !isTtsPlaying && sttState.status == SttBlocStatus.error;
 
@@ -41,47 +42,25 @@ class QuestionBottomBar extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            if (showRestart)
-              OutlinedButton(
-                onPressed: () => _onRestart(context),
-                child: const Text('Restart'),
-              ),
+            if (showRestart) OutlinedButton(onPressed: () => _onRestart(context), child: const Text('Restart')),
 
             const Spacer(),
 
-            if (showRetry)
-              FilledButton(
-                onPressed: () => _onRetry(context),
-                child: const Text('Retry mic'),
-              ),
+            if (showRetry) FilledButton(onPressed: () => _onRetry(context), child: const Text('Retry mic')),
 
             if (showStart)
               FilledButton(
-                onPressed: () => _onStart(
-                  context,
-                  context.read<InterviewQuestionBloc>().state.currentQuestion!,
-                ),
+                onPressed: () => _onStart(context, context.read<InterviewQuestionBloc>().state.currentQuestion!),
                 child: const Text('Start'),
               ),
 
-            if (showStop)
-              FilledButton(
-                onPressed: () => _onStop(context),
-                child: const Text('Stop'),
-              ),
+            if (showStop) FilledButton(onPressed: () => _onStop(context), child: const Text('Stop')),
 
-            if (showSubmit)
-              FilledButton(
-                onPressed: () => _onSubmit(context),
-                child: const Text('Submit'),
-              ),
+            if (showSubmit) FilledButton(onPressed: () => _onSubmit(context), child: const Text('Submit')),
 
             const Spacer(),
 
-            TextButton(
-              onPressed: () => _onSkip(context),
-              child: const Text('Skip'),
-            ),
+            TextButton(onPressed: () => _onSkip(context), child: const Text('Skip')),
           ],
         ),
       ),
@@ -91,21 +70,15 @@ class QuestionBottomBar extends StatelessWidget {
   void _onStart(BuildContext context, QuestionAnswerEntity question) {
     context.read<TtsCubit>().stop();
     Future.delayed(const Duration(milliseconds: 200));
-    context.read<QuestionSttBloc>().add(
-      const StartListening(listenDuration: 300),
-    );
+    context.read<QuestionSttBloc>().add(const StartListening(listenDuration: 300));
 
-    context.read<QuestionTimerBloc>().add(
-      StartRecording(Duration(seconds: question.durationSeconds)),
-    );
+    context.read<QuestionTimerBloc>().add(StartRecording(Duration(seconds: question.durationSeconds)));
   }
 
   void _onRestart(BuildContext context) {
     context.read<QuestionSttBloc>().add(CancelListening());
 
-    context.read<QuestionSttBloc>().add(
-      const StartListening(listenDuration: 300),
-    );
+    context.read<QuestionSttBloc>().add(const StartListening(listenDuration: 300));
   }
 
   void _onStop(BuildContext context) {
@@ -115,9 +88,7 @@ class QuestionBottomBar extends StatelessWidget {
   void _onRetry(BuildContext context) {
     context.read<QuestionSttBloc>().add(CancelListening());
 
-    context.read<QuestionSttBloc>().add(
-      const StartListening(listenDuration: 300),
-    );
+    context.read<QuestionSttBloc>().add(const StartListening(listenDuration: 300));
   }
 
   void _onSubmit(BuildContext context) {
@@ -125,10 +96,32 @@ class QuestionBottomBar extends StatelessWidget {
 
     context.read<QuestionSttBloc>().add(StopListening());
     context.read<InterviewQuestionBloc>().add(SubmitAnswer(transcript));
-    if (context.read<InterviewQuestionBloc>().state.currentQuestionNumber ==
-        5) {
+    if (context.read<InterviewQuestionBloc>().state.currentQuestionNumber == 5) {
+      //
+      final config = context.read<InterviewSetupBloc>().state.interviewConfig;
+      final technology = config['technology'] as String;
+      final experience = config['experience'] as String;
+      final focusArea = config['focusArea'] as String;
+      //
+      log('Interview Config - Technology: $technology, Experience: $experience, Focus Area: $focusArea');
+
+      //
       context.read<InterviewQuestionBloc>().state.questions.map(
         (e) => debugPrint('Question: ${e.question}, Answer: ${e.answer}'),
+      );
+
+      log(
+        "Navigating to evaluation page with collected data...${context.read<InterviewQuestionBloc>().state.questions}",
+      );
+
+      Navigator.pushNamed(
+        context,
+        '/evaluation',
+        arguments: EvaluationPageArgs(
+          technology: technology,
+          experience: experience,
+          questionAndAnswer: context.read<InterviewQuestionBloc>().state.questions,
+        ),
       );
     }
   }

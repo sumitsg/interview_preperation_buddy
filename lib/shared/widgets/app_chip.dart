@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:interview_preperation_buddy/app/themes/app_text_style.dart';
 
 class AppSelectableChip extends StatelessWidget {
   const AppSelectableChip({
@@ -30,11 +31,12 @@ class AppSelectableChip extends StatelessWidget {
         ),
         child: Text(
           title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF616161),
-          ),
+          style: AppTextStyles.labelLarge.copyWith(color: isSelected ? Colors.white : const Color(0xFF616161)),
+          // style: TextStyle(
+          //   fontSize: 14,
+          //   fontWeight: FontWeight.w500,
+          //   color: isSelected ? Colors.white : const Color(0xFF616161),
+          // ),
         ),
       ),
     );

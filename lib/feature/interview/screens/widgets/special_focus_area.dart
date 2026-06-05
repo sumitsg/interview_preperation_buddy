@@ -21,6 +21,7 @@ class FocusAreaSection extends StatelessWidget {
 
           hintText: 'e.g., concurrency, load balancing, React hooks...',
           maxLines: 2,
+          maxLength: 100,
           onChanged: onChanged,
         ),
       ],
