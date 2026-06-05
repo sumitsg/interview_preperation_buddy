@@ -24,14 +24,14 @@ class CompleteAnswer extends QuestionTimerEvent {
   const CompleteAnswer();
 }
 
-class SkipQuestion extends QuestionTimerEvent {
-  const SkipQuestion();
-}
-
 class ResetTimerFlow extends QuestionTimerEvent {
   const ResetTimerFlow();
 }
 
 class TimerTick extends QuestionTimerEvent {
   const TimerTick();
+}
+
+class StopRecordingTimer extends QuestionTimerEvent {
+  const StopRecordingTimer();
 }

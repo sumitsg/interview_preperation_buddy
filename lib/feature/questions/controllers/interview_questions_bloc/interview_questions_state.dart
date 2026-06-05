@@ -8,6 +8,8 @@ class InterviewQuestionState {
   int get currentQuestionNumber => currentIndex + 1;
   int get totalQuestions => questions.length;
 
+  bool get isLastQuestion => (currentIndex == questions.length - 1);
+
   const InterviewQuestionState({
     required this.questions,
     required this.currentIndex,
@@ -16,8 +18,6 @@ class InterviewQuestionState {
 
   QuestionAnswerEntity? get currentQuestion =>
       currentIndex < questions.length ? questions[currentIndex] : null;
-
-  bool get isLastQuestion => currentIndex == questions.length - 1;
 
   InterviewQuestionState copyWith({
     List<QuestionAnswerEntity>? questions,

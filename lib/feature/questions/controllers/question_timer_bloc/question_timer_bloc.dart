@@ -9,79 +9,95 @@ class QuestionTimerBloc extends Bloc<QuestionTimerEvent, QuestionTimerState> {
   QuestionTimerBloc() : super(const QuestionTimerState()) {
     on<StartQuestionFlow>(_onStartQuestionFlow);
     on<StartRecording>(_onStartRecording);
-    on<SpeechDetected>(_onSpeechDetected);
-    on<ContinueRecording>(_onContinueRecording);
-    on<SkipQuestion>(_onSkipQuestion);
     on<CompleteAnswer>(_onCompleteAnswer);
     on<ResetTimerFlow>(_onReset);
     on<TimerTick>(_onTimerTick);
+    on<StopRecordingTimer>(_onStopRecordingTimer);
   }
-
-  Timer? _timer;
 
   static const int thinkingDuration = 15;
-  static const int warningDuration = 15;
-  static const int noSpeechThreshold = 15;
+
+  Timer? _ticker;
+
+  DateTime? _thinkingEndsAt;
+  DateTime? _answerEndsAt;
+
+  // ---------------------------------------------------------------------------
+  // TIMER
+  // ---------------------------------------------------------------------------
 
   void _startTicker() {
-    _timer?.cancel();
+    _ticker?.cancel();
 
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => add(const TimerTick()),
-    );
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!isClosed) {
+        add(const TimerTick());
+      }
+    });
   }
+
+  void _stopTicker() {
+    _ticker?.cancel();
+    _ticker = null;
+  }
+
+  int _remainingSeconds(DateTime? endTime) {
+    if (endTime == null) return 0;
+
+    final remaining = endTime.difference(DateTime.now()).inSeconds;
+
+    return remaining < 0 ? 0 : remaining;
+  }
+
+  // ---------------------------------------------------------------------------
+  // START QUESTION
+  // ---------------------------------------------------------------------------
 
   Future<void> _onStartQuestionFlow(
     StartQuestionFlow event,
     Emitter<QuestionTimerState> emit,
   ) async {
+    _thinkingEndsAt = DateTime.now().add(
+      const Duration(seconds: thinkingDuration),
+    );
+
+    _answerEndsAt = null;
+
     emit(
       state.copyWith(
         phase: TimerPhase.thinking,
         remainingSeconds: thinkingDuration,
         answerRemainingSeconds: 0,
-        noSpeechSeconds: 0,
-        hasSpoken: false,
       ),
     );
 
     _startTicker();
   }
+
+  // ---------------------------------------------------------------------------
+  // START RECORDING
+  // ---------------------------------------------------------------------------
 
   Future<void> _onStartRecording(
     StartRecording event,
     Emitter<QuestionTimerState> emit,
   ) async {
+    _answerEndsAt = DateTime.now().add(event.answerDuration);
+
     emit(
       state.copyWith(
         phase: TimerPhase.answering,
+        remainingSeconds: 0,
         answerRemainingSeconds: event.answerDuration.inSeconds,
-        noSpeechSeconds: 0,
-        hasSpoken: false,
       ),
     );
 
     _startTicker();
   }
 
-  Future<void> _onSpeechDetected(
-    SpeechDetected event,
-    Emitter<QuestionTimerState> emit,
-  ) async {
-    if (state.hasSpoken) return;
-
-    emit(state.copyWith(hasSpoken: true));
-  }
-
-  Future<void> _onContinueRecording(
-    ContinueRecording event,
-    Emitter<QuestionTimerState> emit,
-  ) async {
-    emit(state.copyWith(phase: TimerPhase.answering));
-
-    _startTicker();
-  }
+  // ---------------------------------------------------------------------------
+  // TIMER TICK
+  // ---------------------------------------------------------------------------
 
   Future<void> _onTimerTick(
     TimerTick event,
@@ -96,97 +112,96 @@ class QuestionTimerBloc extends Bloc<QuestionTimerEvent, QuestionTimerState> {
         _handleAnswering(emit);
         break;
 
-      case TimerPhase.speechWarning:
-        _handleSpeechWarning(emit);
-        break;
-
-      default:
+      case TimerPhase.completed:
+      case TimerPhase.idle:
         break;
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // THINKING
+  // ---------------------------------------------------------------------------
 
   void _handleThinking(Emitter<QuestionTimerState> emit) {
-    final remaining = state.remainingSeconds - 1;
-
-    emit(state.copyWith(remainingSeconds: remaining));
+    final remaining = _remainingSeconds(_thinkingEndsAt);
 
     if (remaining <= 0) {
-      _timer?.cancel();
+      _stopTicker();
 
       emit(state.copyWith(phase: TimerPhase.idle, remainingSeconds: 0));
-    }
-  }
-
-  void _handleAnswering(Emitter<QuestionTimerState> emit) {
-    final answerRemaining = state.answerRemainingSeconds - 1;
-
-    final noSpeechSeconds = state.hasSpoken
-        ? state.noSpeechSeconds
-        : state.noSpeechSeconds + 1;
-
-    emit(
-      state.copyWith(
-        answerRemainingSeconds: answerRemaining,
-        noSpeechSeconds: noSpeechSeconds,
-      ),
-    );
-
-    if (!state.hasSpoken && noSpeechSeconds >= noSpeechThreshold) {
-      emit(
-        state.copyWith(
-          phase: TimerPhase.speechWarning,
-          remainingSeconds: warningDuration,
-        ),
-      );
 
       return;
     }
 
-    if (answerRemaining <= 0) {
-      add(const CompleteAnswer());
-    }
+    emit(state.copyWith(remainingSeconds: remaining));
   }
 
-  void _handleSpeechWarning(Emitter<QuestionTimerState> emit) {
-    final remaining = state.remainingSeconds - 1;
+  // ---------------------------------------------------------------------------
+  // ANSWERING
+  // ---------------------------------------------------------------------------
 
-    emit(state.copyWith(remainingSeconds: remaining));
+  void _handleAnswering(Emitter<QuestionTimerState> emit) {
+    final remaining = _remainingSeconds(_answerEndsAt);
 
     if (remaining <= 0) {
-      add(const SkipQuestion());
+      add(const CompleteAnswer());
+      return;
     }
+
+    emit(state.copyWith(answerRemainingSeconds: remaining));
   }
 
-  Future<void> _onSkipQuestion(
-    SkipQuestion event,
-    Emitter<QuestionTimerState> emit,
-  ) async {
-    _timer?.cancel();
-
-    emit(state.copyWith(phase: TimerPhase.skipped));
-  }
+  // ---------------------------------------------------------------------------
+  // COMPLETE
+  // ---------------------------------------------------------------------------
 
   Future<void> _onCompleteAnswer(
     CompleteAnswer event,
     Emitter<QuestionTimerState> emit,
   ) async {
-    _timer?.cancel();
+    _stopTicker();
+
+    emit(
+      state.copyWith(phase: TimerPhase.completed, answerRemainingSeconds: 0),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // STOP RECORDING
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onStopRecordingTimer(
+    StopRecordingTimer event,
+    Emitter<QuestionTimerState> emit,
+  ) async {
+    _stopTicker();
 
     emit(state.copyWith(phase: TimerPhase.completed));
   }
+
+  // ---------------------------------------------------------------------------
+  // RESET
+  // ---------------------------------------------------------------------------
 
   Future<void> _onReset(
     ResetTimerFlow event,
     Emitter<QuestionTimerState> emit,
   ) async {
-    _timer?.cancel();
+    _stopTicker();
+
+    _thinkingEndsAt = null;
+    _answerEndsAt = null;
 
     emit(const QuestionTimerState());
   }
 
+  // ---------------------------------------------------------------------------
+  // DISPOSE
+  // ---------------------------------------------------------------------------
+
   @override
   Future<void> close() {
-    _timer?.cancel();
+    _stopTicker();
     return super.close();
   }
 }
