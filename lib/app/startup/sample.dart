@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:interview_preperation_buddy/core/responsive/responsive.dart';
 import 'package:interview_preperation_buddy/feature/interview/widgets/recording_wave.dart';
 import 'package:interview_preperation_buddy/feature/interview/widgets/technology_selector.dart';
-import 'package:interview_preperation_buddy/feature/questions/widgets/recording_panel.dart';
-import 'package:interview_preperation_buddy/feature/questions/widgets/voice_wave.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_badge.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_button.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_card.dart';
@@ -53,7 +51,10 @@ class _SamplePageState extends State<SamplePage> {
 
             Text('Desktop: $isDesktop'),
             const SizedBox(height: 12),
-            const Text('Buttons', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Buttons',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
 
             const SizedBox(height: 12),
 
@@ -61,7 +62,10 @@ class _SamplePageState extends State<SamplePage> {
 
             const SizedBox(height: 24),
 
-            const Text('Card', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Card',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
 
             const SizedBox(height: 12),
 
@@ -69,21 +73,35 @@ class _SamplePageState extends State<SamplePage> {
 
             const SizedBox(height: 24),
 
-            const Text('Chips', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Chips',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
 
             const SizedBox(height: 12),
 
             const SizedBox(height: 24),
 
-            const Text('Text Field', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Text Field',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
 
             const SizedBox(height: 12),
 
-            AppTextField(controller: focusController, hintText: 'Enter your focus area here...', maxLines: 4, onChanged: (String value) { },),
+            AppTextField(
+              controller: focusController,
+              hintText: 'Enter your focus area here...',
+              maxLines: 4,
+              onChanged: (String value) {},
+            ),
 
             const SizedBox(height: 24),
 
-            const Text('Badges', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Badges',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
 
             const SizedBox(height: 12),
 
@@ -98,7 +116,10 @@ class _SamplePageState extends State<SamplePage> {
 
             const SizedBox(height: 24),
 
-            const Text('Stats', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Stats',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
 
             const SizedBox(height: 12),
 
@@ -116,7 +137,10 @@ class _SamplePageState extends State<SamplePage> {
 
             const SizedBox(height: 24),
 
-            const Text('Timer', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Timer',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
 
             const SizedBox(height: 12),
 
@@ -130,14 +154,19 @@ class _SamplePageState extends State<SamplePage> {
             ),
 
             const SizedBox(height: 40),
-            RecordingPanel(duration: 20, wordCount: 50, onTimerCompleted: () {}),
+            // RecordingPanel(duration: 20, wordCount: 50, onTimerCompleted: () {}),
             const SizedBox(height: 40),
-            VoiceWave(barCount: 10),
-            const SizedBox(height: 40),
+
             TechnologySelector(
               onSelected: (value) {},
               selectedTechnology: "Flutter",
-              technologies: ["ios", "Flutter", "React", "Swift", "Data structure and also"],
+              technologies: [
+                "ios",
+                "Flutter",
+                "React",
+                "Swift",
+                "Data structure and also",
+              ],
             ),
             const SizedBox(height: 40),
             const RecordingWave(),

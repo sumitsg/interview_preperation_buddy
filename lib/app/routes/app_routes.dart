@@ -7,7 +7,7 @@ import 'package:interview_preperation_buddy/feature/questions/controllers/interv
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/tts_bloc/tts_cubit.dart';
-import 'package:interview_preperation_buddy/feature/questions/entity%20/question_answer_entity.dart';
+import 'package:interview_preperation_buddy/feature/questions/entity/question_answer_entity.dart';
 import 'package:interview_preperation_buddy/feature/questions/screens/question_page.dart';
 
 class AppRoutes {

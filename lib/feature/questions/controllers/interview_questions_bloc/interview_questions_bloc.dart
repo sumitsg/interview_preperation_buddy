@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_event.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_state.dart';
-import 'package:interview_preperation_buddy/feature/questions/entity%20/question_answer_entity.dart';
+import 'package:interview_preperation_buddy/feature/questions/entity/question_answer_entity.dart';
 
 class InterviewQuestionBloc
     extends Bloc<InterviewQuestionEvent, InterviewQuestionState> {
@@ -15,7 +15,7 @@ class InterviewQuestionBloc
       ) {
     on<LoadQuestions>(_onLoadQuestions);
     on<SubmitAnswer>(_onSubmitAnswer);
-    on<SkipQuestion>(_onSkipQuestion);
+    on<SkipInterviewQuestionQuestion>(_onSkipQuestion);
   }
 
   void _onLoadQuestions(
@@ -46,7 +46,7 @@ class InterviewQuestionBloc
   }
 
   Future<void> _onSkipQuestion(
-    SkipQuestion event,
+    SkipInterviewQuestionQuestion event,
     Emitter<InterviewQuestionState> emit,
   ) async {
     if (state.isCompleted) return;
