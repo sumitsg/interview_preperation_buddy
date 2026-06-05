@@ -8,65 +8,68 @@ import 'package:interview_preperation_buddy/feature/questions/controllers/questi
 class QuestionTimerBloc extends Bloc<QuestionTimerEvent, QuestionTimerState> {
   QuestionTimerBloc() : super(const QuestionTimerState()) {
     on<StartQuestionFlow>(_onStartQuestionFlow);
-
     on<StartRecording>(_onStartRecording);
-
     on<SpeechDetected>(_onSpeechDetected);
-
     on<ContinueRecording>(_onContinueRecording);
-
     on<SkipQuestion>(_onSkipQuestion);
-
     on<CompleteAnswer>(_onCompleteAnswer);
-
     on<ResetTimerFlow>(_onReset);
-
     on<TimerTick>(_onTimerTick);
   }
 
   Timer? _timer;
 
-  int _remainingSeconds = 0;
+  static const int thinkingDuration = 15;
+  static const int warningDuration = 15;
+  static const int noSpeechThreshold = 15;
 
-  int _answerRemainingSeconds = 0;
+  void _startTicker() {
+    _timer?.cancel();
 
-  int _silenceCounter = 0;
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => add(const TimerTick()),
+    );
+  }
 
   Future<void> _onStartQuestionFlow(
     StartQuestionFlow event,
     Emitter<QuestionTimerState> emit,
   ) async {
-    _startPhase(emit, phase: TimerPhase.thinking, seconds: 15);
+    emit(
+      state.copyWith(
+        phase: TimerPhase.thinking,
+        remainingSeconds: thinkingDuration,
+        answerRemainingSeconds: 0,
+        noSpeechSeconds: 0,
+        hasSpoken: false,
+      ),
+    );
+
+    _startTicker();
   }
 
   Future<void> _onStartRecording(
     StartRecording event,
     Emitter<QuestionTimerState> emit,
   ) async {
-    _timer?.cancel();
-
-    _answerRemainingSeconds = event.answerDuration.inSeconds;
-    _silenceCounter = 0;
-
     emit(
       state.copyWith(
         phase: TimerPhase.answering,
-        answerRemainingSeconds: _answerRemainingSeconds,
+        answerRemainingSeconds: event.answerDuration.inSeconds,
+        noSpeechSeconds: 0,
         hasSpoken: false,
       ),
     );
 
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => add(TimerTick()),
-    );
+    _startTicker();
   }
 
   Future<void> _onSpeechDetected(
     SpeechDetected event,
     Emitter<QuestionTimerState> emit,
   ) async {
-    _silenceCounter = 0;
+    if (state.hasSpoken) return;
 
     emit(state.copyWith(hasSpoken: true));
   }
@@ -75,22 +78,9 @@ class QuestionTimerBloc extends Bloc<QuestionTimerEvent, QuestionTimerState> {
     ContinueRecording event,
     Emitter<QuestionTimerState> emit,
   ) async {
-    _timer?.cancel();
+    emit(state.copyWith(phase: TimerPhase.answering));
 
-    _silenceCounter = 0;
-
-    emit(
-      state.copyWith(
-        phase: TimerPhase.answering,
-        hasSpoken: true,
-        answerRemainingSeconds: _answerRemainingSeconds,
-      ),
-    );
-
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => add(TimerTick()),
-    );
+    _startTicker();
   }
 
   Future<void> _onTimerTick(
@@ -116,11 +106,11 @@ class QuestionTimerBloc extends Bloc<QuestionTimerEvent, QuestionTimerState> {
   }
 
   void _handleThinking(Emitter<QuestionTimerState> emit) {
-    _remainingSeconds--;
+    final remaining = state.remainingSeconds - 1;
 
-    emit(state.copyWith(remainingSeconds: _remainingSeconds));
+    emit(state.copyWith(remainingSeconds: remaining));
 
-    if (_remainingSeconds <= 0) {
+    if (remaining <= 0) {
       _timer?.cancel();
 
       emit(state.copyWith(phase: TimerPhase.idle, remainingSeconds: 0));
@@ -128,49 +118,43 @@ class QuestionTimerBloc extends Bloc<QuestionTimerEvent, QuestionTimerState> {
   }
 
   void _handleAnswering(Emitter<QuestionTimerState> emit) {
-    _answerRemainingSeconds--;
+    final answerRemaining = state.answerRemainingSeconds - 1;
 
-    if (!state.hasSpoken) {
-      _silenceCounter++;
-    }
+    final noSpeechSeconds = state.hasSpoken
+        ? state.noSpeechSeconds
+        : state.noSpeechSeconds + 1;
 
-    emit(state.copyWith(answerRemainingSeconds: _answerRemainingSeconds));
+    emit(
+      state.copyWith(
+        answerRemainingSeconds: answerRemaining,
+        noSpeechSeconds: noSpeechSeconds,
+      ),
+    );
 
-    if (!state.hasSpoken && _silenceCounter >= 15) {
-      _startPhase(emit, phase: TimerPhase.speechWarning, seconds: 15);
+    if (!state.hasSpoken && noSpeechSeconds >= noSpeechThreshold) {
+      emit(
+        state.copyWith(
+          phase: TimerPhase.speechWarning,
+          remainingSeconds: warningDuration,
+        ),
+      );
+
       return;
     }
 
-    if (_answerRemainingSeconds <= 0) {
-      add(CompleteAnswer());
+    if (answerRemaining <= 0) {
+      add(const CompleteAnswer());
     }
   }
 
   void _handleSpeechWarning(Emitter<QuestionTimerState> emit) {
-    _remainingSeconds--;
+    final remaining = state.remainingSeconds - 1;
 
-    emit(state.copyWith(remainingSeconds: _remainingSeconds));
+    emit(state.copyWith(remainingSeconds: remaining));
 
-    if (_remainingSeconds <= 0) {
-      add(SkipQuestion());
+    if (remaining <= 0) {
+      add(const SkipQuestion());
     }
-  }
-
-  void _startPhase(
-    Emitter<QuestionTimerState> emit, {
-    required TimerPhase phase,
-    required int seconds,
-  }) {
-    _remainingSeconds = seconds;
-
-    emit(state.copyWith(phase: phase, remainingSeconds: seconds));
-
-    _timer?.cancel();
-
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => add(TimerTick()),
-    );
   }
 
   Future<void> _onSkipQuestion(
@@ -197,10 +181,12 @@ class QuestionTimerBloc extends Bloc<QuestionTimerEvent, QuestionTimerState> {
   ) async {
     _timer?.cancel();
 
-    _remainingSeconds = 0;
-    _answerRemainingSeconds = 0;
-    _silenceCounter = 0;
-
     emit(const QuestionTimerState());
+  }
+
+  @override
+  Future<void> close() {
+    _timer?.cancel();
+    return super.close();
   }
 }
