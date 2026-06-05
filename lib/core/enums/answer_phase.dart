@@ -1,9 +1,1 @@
-enum AnswerPhase {
-  readingQuestion,
-  waitingToStart,
-  startRecordingWarning,
-  answering,
-  speechWarning,
-  completed,
-  skipped,
-}
+enum TimerPhase { idle, thinking, answering, speechWarning, completed, skipped }

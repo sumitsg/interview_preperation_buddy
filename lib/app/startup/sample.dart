@@ -7,7 +7,6 @@ import 'package:interview_preperation_buddy/feature/questions/widgets/voice_wave
 import 'package:interview_preperation_buddy/shared/widgets/app_badge.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_button.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_card.dart';
-import 'package:interview_preperation_buddy/shared/widgets/app_chip.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_stat_tile.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_textfield.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_timer.dart';
@@ -80,7 +79,7 @@ class _SamplePageState extends State<SamplePage> {
 
             const SizedBox(height: 12),
 
-            AppTextField(controller: focusController, hintText: 'Enter your focus area here...', maxLines: 4),
+            AppTextField(controller: focusController, hintText: 'Enter your focus area here...', maxLines: 4, onChanged: (String value) { },),
 
             const SizedBox(height: 24),
 

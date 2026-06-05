@@ -7,9 +7,10 @@ class ResponsivePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Align(
+      alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
+        constraints: const BoxConstraints(maxWidth: 1400, minWidth: 300),
         child: Padding(padding: const EdgeInsets.all(16), child: child),
       ),
     );
