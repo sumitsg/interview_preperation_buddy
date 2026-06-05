@@ -3,9 +3,12 @@ import 'package:interview_preperation_buddy/app/di/injection_container.dart';
 import 'package:interview_preperation_buddy/core/services/stt_service.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/quesion_stt_state.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_event.dart';
+import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_bloc.dart';
+import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_events.dart';
 
 class QuestionSttBloc extends Bloc<QuestionSttEvent, QuestionSttState> {
   final SttService _sttService = sl<SttService>();
+  final QuestionTimerBloc timerBloc = sl<QuestionTimerBloc>();
 
   QuestionSttBloc() : super(const QuestionSttState()) {
     on<InitializeStt>(_onInitialize);
@@ -15,6 +18,9 @@ class QuestionSttBloc extends Bloc<QuestionSttEvent, QuestionSttState> {
     on<TranscriptUpdated>(_onTranscriptUpdated);
     on<ListeningCompleted>(_onListeningCompleted);
     on<SttErrorOccurred>(_onErrorOccurred);
+    on<ResetStt>((event, emit) {
+      emit(const QuestionSttState());
+    });
   }
 
   Future<void> _onInitialize(
@@ -50,6 +56,7 @@ class QuestionSttBloc extends Bloc<QuestionSttEvent, QuestionSttState> {
 
       onResult: (text) {
         add(TranscriptUpdated(text));
+        timerBloc.add(const SpeechDetected());
       },
 
       onError: (error) {

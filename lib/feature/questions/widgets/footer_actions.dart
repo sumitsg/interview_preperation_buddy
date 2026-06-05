@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/core/enums/tts_state.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
-import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_event.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/quesion_stt_state.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_event.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_bloc.dart';
-import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_events.dart'
-    hide SkipQuestion;
+import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_events.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/tts_bloc/tts_cubit.dart';
 import 'package:interview_preperation_buddy/feature/questions/entity/question_answer_entity.dart';
 
@@ -121,23 +119,10 @@ class QuestionBottomBar extends StatelessWidget {
   }
 
   void _onSubmit(BuildContext context) {
-    final transcript = context.read<QuestionSttBloc>().state.transcript.trim();
-
-    context.read<QuestionSttBloc>().add(StopListening());
-    context.read<InterviewQuestionBloc>().add(SubmitAnswer(transcript));
-    if (context.read<InterviewQuestionBloc>().state.currentQuestionNumber ==
-        5) {
-      context.read<InterviewQuestionBloc>().state.questions.map(
-        (e) => debugPrint('Question: ${e.question}, Answer: ${e.answer}'),
-      );
-    }
+    context.read<QuestionTimerBloc>().add(const CompleteAnswer());
   }
 
   void _onSkip(BuildContext context) {
-    context.read<TtsCubit>().stop();
-
-    context.read<QuestionSttBloc>().add(CancelListening());
-
-    context.read<InterviewQuestionBloc>().add(SkipInterviewQuestionQuestion());
+    context.read<QuestionTimerBloc>().add(const SkipQuestion());
   }
 }

@@ -1,21 +1,37 @@
-abstract class QuestionTimerEvent {}
+abstract class QuestionTimerEvent {
+  const QuestionTimerEvent();
+}
 
-class StartQuestionFlow extends QuestionTimerEvent {}
+class StartQuestionFlow extends QuestionTimerEvent {
+  const StartQuestionFlow();
+}
 
 class StartRecording extends QuestionTimerEvent {
   final Duration answerDuration;
 
-  StartRecording(this.answerDuration);
+  const StartRecording(this.answerDuration);
 }
 
-class SpeechDetected extends QuestionTimerEvent {}
+class SpeechDetected extends QuestionTimerEvent {
+  const SpeechDetected();
+}
 
-class ContinueRecording extends QuestionTimerEvent {}
+class ContinueRecording extends QuestionTimerEvent {
+  const ContinueRecording();
+}
 
-class SkipQuestion extends QuestionTimerEvent {}
+class CompleteAnswer extends QuestionTimerEvent {
+  const CompleteAnswer();
+}
 
-class CompleteAnswer extends QuestionTimerEvent {}
+class SkipQuestion extends QuestionTimerEvent {
+  const SkipQuestion();
+}
 
-class ResetTimerFlow extends QuestionTimerEvent {}
+class ResetTimerFlow extends QuestionTimerEvent {
+  const ResetTimerFlow();
+}
 
-class TimerTick extends QuestionTimerEvent {}
+class TimerTick extends QuestionTimerEvent {
+  const TimerTick();
+}

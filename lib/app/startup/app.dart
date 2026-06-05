@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         title: 'Interview Preparation Buddy',
         theme: AppTheme.lightTheme,
         initialRoute: AppRoutes.interview,
-        
+
         onGenerateRoute: AppRouter.onGenerateRoute,
       ),
     );

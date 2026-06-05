@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/core/enums/answer_phase.dart';
 import 'package:interview_preperation_buddy/core/enums/tts_state.dart';
-import 'package:interview_preperation_buddy/feature/interview/widgets/recording_wave.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_event.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_state.dart';
@@ -15,7 +14,6 @@ import 'package:interview_preperation_buddy/feature/questions/controllers/questi
 import 'package:interview_preperation_buddy/feature/questions/controllers/tts_bloc/tts_cubit.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/tts_bloc/tts_state.dart';
 import 'package:interview_preperation_buddy/feature/questions/widgets/footer_actions.dart';
-import 'package:interview_preperation_buddy/feature/questions/widgets/interview_transcript_view.dart';
 import 'package:interview_preperation_buddy/feature/questions/widgets/question_card.dart';
 import 'package:interview_preperation_buddy/feature/questions/widgets/recording_panel.dart';
 import 'package:interview_preperation_buddy/shared/widgets/responsive_widget.dart';
@@ -31,6 +29,7 @@ class QuestionPage extends StatefulWidget {
 
 class _QuestionPageState extends State<QuestionPage> {
   var _hasSpokenInitialQuestion = false;
+  bool _warningDialogVisible = false;
 
   @override
   void initState() {
@@ -49,17 +48,19 @@ class _QuestionPageState extends State<QuestionPage> {
 
     if (question == null) return;
 
-    await ttsCubit.initialize().then((_) async {
-      if (mounted) {
-        if (ttsCubit.state.status != TtsStatus.ready) return;
+    await ttsCubit.initialize();
 
-        context.read<QuestionTimerBloc>().add(ResetTimerFlow());
-        context.read<QuestionSttBloc>().add(CancelListening());
+    if (!mounted) return;
 
-        await ttsCubit.speak(question.question);
-        _hasSpokenInitialQuestion = true;
-      }
-    });
+    if (ttsCubit.state.status != TtsStatus.ready) {
+      return;
+    }
+
+    context.read<QuestionTimerBloc>().add(ResetTimerFlow());
+    context.read<QuestionSttBloc>().add(CancelListening());
+
+    await ttsCubit.speak(question.question);
+    _hasSpokenInitialQuestion = true;
   }
 
   @override
@@ -75,16 +76,20 @@ class _QuestionPageState extends State<QuestionPage> {
     return BlocListener<InterviewQuestionBloc, InterviewQuestionState>(
       listenWhen: (previous, current) =>
           previous.currentIndex != current.currentIndex,
-      listener: (context, state) {
+      listener: (context, state) async {
         final question = state.currentQuestion;
 
         if (question == null) return;
 
-        context.read<QuestionTimerBloc>().add(ResetTimerFlow());
+        context.read<QuestionTimerBloc>().add(const ResetTimerFlow());
+
         context.read<QuestionSttBloc>().add(CancelListening());
 
-        context.read<TtsCubit>().stop();
-        context.read<TtsCubit>().speak(question.question);
+        await context.read<TtsCubit>().stop().then((_) async {
+          if (context.mounted) {
+            await context.read<TtsCubit>().speak(question.question);
+          }
+        });
       },
     );
   }
@@ -95,7 +100,7 @@ class _QuestionPageState extends State<QuestionPage> {
           previous.status == TtsStatus.speaking &&
           current.status == TtsStatus.completed,
       listener: (context, state) {
-        context.read<QuestionTimerBloc>().add(StartQuestionFlow());
+        context.read<QuestionTimerBloc>().add(const StartQuestionFlow());
       },
     );
   }
@@ -105,18 +110,44 @@ class _QuestionPageState extends State<QuestionPage> {
       listenWhen: (previous, current) => previous.phase != current.phase,
       listener: (context, state) async {
         switch (state.phase) {
+          case TimerPhase.idle:
+            final question = context
+                .read<InterviewQuestionBloc>()
+                .state
+                .currentQuestion;
+
+            if (question == null) return;
+
+            context.read<QuestionSttBloc>().add(
+              const StartListening(listenDuration: 300),
+            );
+
+            context.read<QuestionTimerBloc>().add(
+              StartRecording(Duration(seconds: question.durationSeconds)),
+            );
+
+            break;
+
           case TimerPhase.speechWarning:
+            if (_warningDialogVisible) return;
+
+            _warningDialogVisible = true;
+
             context.read<QuestionSttBloc>().add(StopListening());
 
             await _showSpeechWarningDialog(context);
+
+            _warningDialogVisible = false;
+
             break;
 
           case TimerPhase.skipped:
-            context.read<QuestionSttBloc>().add(CancelListening());
+            await _resetInterviewState(context);
 
             context.read<InterviewQuestionBloc>().add(
               SkipInterviewQuestionQuestion(),
             );
+
             break;
 
           case TimerPhase.completed:
@@ -126,9 +157,12 @@ class _QuestionPageState extends State<QuestionPage> {
                 .transcript
                 .trim();
 
-            context.read<QuestionSttBloc>().add(CancelListening());
+            await _resetInterviewState(context);
 
             context.read<InterviewQuestionBloc>().add(SubmitAnswer(transcript));
+
+            // call the api when on last page
+
             break;
 
           default:
@@ -138,26 +172,41 @@ class _QuestionPageState extends State<QuestionPage> {
     );
   }
 
-  _showSpeechWarningDialog(BuildContext context) {
-    showDialog(
+  Future<void> _showSpeechWarningDialog(BuildContext context) async {
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Time\'s almost up!'),
-        content: const Text('Please wrap up your answer.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.read<QuestionTimerBloc>().add(SkipQuestion());
-            },
-            child: const Text('Skip'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Time\'s almost up!'),
+          content: const Text('Please wrap up your answer.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+
+                _resetInterviewState(context);
+              },
+              child: const Text('Skip'),
+            ),
+
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+
+                context.read<QuestionSttBloc>().add(
+                  const StartListening(listenDuration: 300),
+                );
+
+                context.read<QuestionTimerBloc>().add(
+                  const ContinueRecording(),
+                );
+              },
+              child: const Text('Continue'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -235,37 +284,12 @@ class _QuestionView extends StatelessWidget {
   }
 }
 
-class InterviewFlowListener extends StatelessWidget {
-  final Widget child;
+Future<void> _resetInterviewState(BuildContext context) async {
+  await context.read<TtsCubit>().stop();
 
-  const InterviewFlowListener({super.key, required this.child});
+  context.read<QuestionSttBloc>().add(CancelListening());
 
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<InterviewQuestionBloc, InterviewQuestionState>(
-          listenWhen: (previous, current) =>
-              previous.currentIndex != current.currentIndex,
-          listener: (context, state) {
-            final question = state.currentQuestion;
+  context.read<QuestionSttBloc>().add(const ResetStt());
 
-            if (question == null) return;
-
-            context.read<TtsCubit>().stop();
-
-            context.read<QuestionSttBloc>().add(CancelListening());
-
-            context.read<TtsCubit>().speak(question.question);
-            Future.delayed(const Duration(milliseconds: 200));
-
-            context.read<QuestionSttBloc>().add(
-              const StartListening(listenDuration: 300),
-            );
-          },
-        ),
-      ],
-      child: child,
-    );
-  }
+  context.read<QuestionTimerBloc>().add(const ResetTimerFlow());
 }

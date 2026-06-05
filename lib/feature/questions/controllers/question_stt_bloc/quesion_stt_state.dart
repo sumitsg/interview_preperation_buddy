@@ -14,6 +14,7 @@ class QuestionSttState extends Equatable {
   });
 
   bool get isListening => status == SttBlocStatus.listening;
+  bool get isCompleted => status == SttBlocStatus.completed;
 
   QuestionSttState copyWith({
     SttBlocStatus? status,

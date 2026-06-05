@@ -12,9 +12,7 @@ class InitializeStt extends QuestionSttEvent {}
 class StartListening extends QuestionSttEvent {
   final int listenDuration;
 
-  const StartListening({
-    required this.listenDuration,
-  });
+  const StartListening({required this.listenDuration});
 
   @override
   List<Object?> get props => [listenDuration];
@@ -42,4 +40,8 @@ class SttErrorOccurred extends QuestionSttEvent {
 
   @override
   List<Object?> get props => [error];
+}
+
+class ResetStt extends QuestionSttEvent {
+  const ResetStt();
 }
