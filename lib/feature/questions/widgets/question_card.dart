@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:interview_preperation_buddy/feature/questions/entity%20/question_answer_entity.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_card.dart';
 
 class QuestionCard extends StatelessWidget {
-  const QuestionCard({
-    super.key,
-    required this.questionNumber,
-    required this.totalQuestions,
-    required this.question,
-  });
-
-  final int questionNumber;
-  final int totalQuestions;
-  final QuestionAnswerEntity question;
+  const QuestionCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final questionState = context.select(
+      (InterviewQuestionBloc bloc) => bloc.state,
+    );
+
+    if (questionState.currentQuestion == null) {
+      return const SizedBox.shrink();
+    }
+
+    final question = questionState.currentQuestion!;
     return AppCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -24,7 +25,7 @@ class QuestionCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Question $questionNumber of $totalQuestions',
+                'Question ${questionState.currentQuestionNumber} of ${questionState.totalQuestions}',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               Spacer(),
