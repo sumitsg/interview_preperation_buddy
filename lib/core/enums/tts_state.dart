@@ -1,1 +1,9 @@
-enum TtsStatus { idle, initializing, ready, speaking, stopped, error }
+enum TtsStatus {
+  initial,
+  initializing,
+  ready,
+  speaking,
+  completed,
+  stopped,
+  error,
+}

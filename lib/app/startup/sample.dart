@@ -7,7 +7,6 @@ import 'package:interview_preperation_buddy/feature/questions/widgets/voice_wave
 import 'package:interview_preperation_buddy/shared/widgets/app_badge.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_button.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_card.dart';
-import 'package:interview_preperation_buddy/shared/widgets/app_chip.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_stat_tile.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_textfield.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_timer.dart';

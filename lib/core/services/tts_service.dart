@@ -7,7 +7,7 @@ class TtsService {
 
   bool _initialized = false;
 
-  TtsStatus _status = TtsStatus.idle;
+  TtsStatus _status = TtsStatus.initial;
 
   VoidCallback? _onCompleted;
   ValueChanged<String>? _onError;
@@ -23,9 +23,9 @@ class TtsService {
       _status = TtsStatus.initializing;
 
       await _tts.setLanguage('en-US');
-      await _tts.setPitch(1.0);
-      await _tts.setSpeechRate(0.45);
+      await _tts.setSpeechRate(0.80);
       await _tts.setVolume(1.0);
+      await _tts.setPitch(0.85);
 
       _tts.setStartHandler(() {
         _status = TtsStatus.speaking;
@@ -42,6 +42,7 @@ class TtsService {
 
       _tts.setErrorHandler((message) {
         _status = TtsStatus.error;
+        print('TTS Error: $message');
         _onError?.call(message);
       });
 
