@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/app/themes/app_text_style.dart';
 import 'package:interview_preperation_buddy/core/constants/interview_constants.dart';
+import 'package:interview_preperation_buddy/core/responsive/responsive.dart';
+import 'package:interview_preperation_buddy/feature/feedback/screens/pages/evaluation_page.dart';
 import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_bloc.dart';
 import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_event.dart';
 import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_state.dart';
@@ -41,112 +43,115 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
       body: SafeArea(
         child: ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 800),
-          child: Column(
-            children: [
-              const InterviewSetupHeader(),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            child: Column(
+              children: [
+                const InterviewSetupHeader(),
 
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ResponsiveContainer(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Center(child: AppText("Interview setup", style: AppTextStyles.bodyLarge)),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ResponsiveContainer(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Center(child: AppText("Interview setup", style: AppTextStyles.bodyLarge)),
 
-                            const SizedBox(height: 12),
+                              const SizedBox(height: 12),
 
-                            //
-                            Center(
-                              child: AppText(
-                                "Configure your mock interview parameters",
-                                style: AppTextStyles.headline2,
+                              //
+                              Center(
+                                child: AppText(
+                                  "Configure your mock interview parameters",
+                                  style: AppTextStyles.headline2,
+                                ),
                               ),
-                            ),
 
-                            //
-                            const SizedBox(height: 32),
-                            // TechnologySection(
-                            //   onTechnologySelected: (value) {},
-                            //   selectedTechnology: "Futter",
-                            //   technologies: InterviewConstants.interviewTracks,
-                            // ),
+                              //
+                              const SizedBox(height: 32),
 
-                            //
-                            BlocSelector<InterviewSetupBloc, InterviewSetupState, String?>(
-                              selector: (state) => state.selectedTechnology,
-                              builder: (context, selectedTechnology) {
-                                return TechnologySection(
-                                  technologies: InterviewConstants.interviewTracks,
-                                  selectedTechnology: selectedTechnology,
-                                  onTechnologySelected: (technology) {
-                                    context.read<InterviewSetupBloc>().add(TechnologySelected(technology));
+                              BlocSelector<InterviewSetupBloc, InterviewSetupState, String?>(
+                                selector: (state) => state.selectedTechnology,
+                                builder: (context, selectedTechnology) {
+                                  return TechnologySection(
+                                    technologies: InterviewConstants.interviewTracks,
+                                    selectedTechnology: selectedTechnology,
+                                    onTechnologySelected: (technology) {
+                                      context.read<InterviewSetupBloc>().add(TechnologySelected(technology));
+                                    },
+                                  );
+                                },
+                              ),
+
+                              //
+                              const SizedBox(height: 32),
+
+                              BlocSelector<InterviewSetupBloc, InterviewSetupState, String?>(
+                                selector: (state) => state.selectedExperience,
+                                builder: (context, selectedExperience) {
+                                  return ExperienceSection(
+                                    experiences: InterviewConstants.experienceLevels,
+                                    selectedExperience: selectedExperience,
+                                    onExperienceSelected: (experience) {
+                                      context.read<InterviewSetupBloc>().add(ExperienceSelected(experience));
+                                    },
+                                  );
+                                },
+                              ),
+
+                              SizedBox(height: 32),
+
+                              FocusAreaSection(
+                                controller: _focusAreaController,
+                                onChanged: (value) {
+                                  context.read<InterviewSetupBloc>().add(FocusAreaChanged(value));
+                                },
+                              ),
+
+                              SizedBox(height: 64),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: BlocSelector<InterviewSetupBloc, InterviewSetupState, bool>(
+                                  selector: (state) => state.isFormValid,
+                                  builder: (context, isFormValid) {
+                                    return AppButton(
+                                      width: double.maxFinite,
+                                      title: "Start Interview",
+                                      onPressed: isFormValid
+                                          ? () {
+                                              // context.read<InterviewSetupBloc>().add(StartInterviewPressed());
+                                              final config = context.read<InterviewSetupBloc>().state.interviewConfig;
+
+                                              debugPrint("$config");
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (context) => EvaluationPage()),
+                                              );
+                                            }
+                                          : null,
+                                      icon: const Icon(Icons.arrow_forward_ios),
+                                    );
                                   },
-                                );
-                              },
-                            ),
-
-                            SizedBox(height: 32),
-                            // ExperienceSection(
-                            //   experiences: InterviewConstants.experienceLevels,
-                            //   onExperienceSelected: (value) {},
-                            //   selectedExperience: "3-5 Years",
-                            // ),
-                            BlocSelector<InterviewSetupBloc, InterviewSetupState, String?>(
-                              selector: (state) => state.selectedExperience,
-                              builder: (context, selectedExperience) {
-                                return ExperienceSection(
-                                  experiences: InterviewConstants.experienceLevels,
-                                  selectedExperience: selectedExperience,
-                                  onExperienceSelected: (experience) {
-                                    context.read<InterviewSetupBloc>().add(ExperienceSelected(experience));
-                                  },
-                                );
-                              },
-                            ),
-
-                            SizedBox(height: 32),
-
-                            // FocusAreaSection(controller: TextEditingController()),
-                            FocusAreaSection(
-                              controller: _focusAreaController,
-                              onChanged: (value) {
-                                context.read<InterviewSetupBloc>().add(FocusAreaChanged(value));
-                              },
-                            ),
-                          ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 32),
 
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: BlocSelector<InterviewSetupBloc, InterviewSetupState, bool>(
-                          selector: (state) => state.isFormValid,
-                          builder: (context, isFormValid) {
-                            return AppButton(
-                              title: "Start Interview",
-                              onPressed: isFormValid
-                                  ? () {
-                                      // context.read<InterviewSetupBloc>().add(StartInterviewPressed());
-                                      final config = context.read<InterviewSetupBloc>().state.interviewConfig;
-
-                                      debugPrint("$config");
-                                    }
-                                  : null,
-                              icon: const Icon(Icons.arrow_forward_ios),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                        //
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              // const StartInterviewButton(),
-            ],
+                // const StartInterviewButton(),
+              ],
+            ),
           ),
         ),
       ),
