@@ -64,10 +64,13 @@ class _TranscriptViewState extends State<QuestionsTranscriptView> {
             controller: _controller,
             enableInteractiveSelection: false,
             contextMenuBuilder: (_, __) => const SizedBox.shrink(),
+            minLines: 5,
+            maxLines: 10,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              filled: false,
               hintText: 'Your answer will appear here...',
             ),
             onChanged: (value) {
