@@ -17,7 +17,6 @@ final sl = GetIt.instance;
 Future<void> init() async {
   /// Service
   sl.registerLazySingleton(() => GeminiService());
-  sl.registerLazySingleton(() => GeminiService());
 
   sl.registerFactory(() => TtsService());
   sl.registerFactory(() => SttService());
@@ -26,12 +25,10 @@ Future<void> init() async {
   sl.registerLazySingleton<InterviewRepository>(
     () => InterviewRepositoryImpl(sl()),
   );
-  sl.registerLazySingleton<InterviewRepository>(() => InterviewRepositoryImpl(sl()));
 
   /// Bloc
   sl.registerFactory(() => InterviewBloc(sl()));
   sl.registerFactory(() => InterviewSetupBloc());
-  sl.registerFactory(() => InterviewBloc(sl()));
 
   sl.registerFactoryParam<
     InterviewQuestionBloc,
@@ -43,4 +40,3 @@ Future<void> init() async {
   sl.registerFactory<QuestionSttBloc>(() => QuestionSttBloc());
   sl.registerFactory<QuestionTimerBloc>(() => QuestionTimerBloc());
 }
-

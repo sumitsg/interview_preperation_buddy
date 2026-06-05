@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:interview_preperation_buddy/app/routes/app_routes.dart';
+import 'package:interview_preperation_buddy/app/startup/app.dart';
 import 'package:interview_preperation_buddy/app/themes/app_text_style.dart';
 import 'package:interview_preperation_buddy/core/constants/interview_constants.dart';
 import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_bloc.dart';
@@ -9,6 +11,8 @@ import 'package:interview_preperation_buddy/feature/interview/screens/widgets/ex
 import 'package:interview_preperation_buddy/feature/interview/screens/widgets/interview_setup_header.dart';
 import 'package:interview_preperation_buddy/feature/interview/screens/widgets/special_focus_area.dart';
 import 'package:interview_preperation_buddy/feature/interview/screens/widgets/technology_section.dart';
+import 'package:interview_preperation_buddy/feature/questions/entity%20/question_answer_entity.dart'
+    show QuestionAnswerEntity;
 import 'package:interview_preperation_buddy/shared/widgets/app_button.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_text.dart';
 import 'package:interview_preperation_buddy/shared/widgets/responsive_container.dart';
@@ -53,7 +57,12 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Center(child: AppText("Interview setup", style: AppTextStyles.bodyLarge)),
+                            Center(
+                              child: AppText(
+                                "Interview setup",
+                                style: AppTextStyles.bodyLarge,
+                              ),
+                            ),
 
                             const SizedBox(height: 12),
 
@@ -74,14 +83,21 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
                             // ),
 
                             //
-                            BlocSelector<InterviewSetupBloc, InterviewSetupState, String?>(
+                            BlocSelector<
+                              InterviewSetupBloc,
+                              InterviewSetupState,
+                              String?
+                            >(
                               selector: (state) => state.selectedTechnology,
                               builder: (context, selectedTechnology) {
                                 return TechnologySection(
-                                  technologies: InterviewConstants.interviewTracks,
+                                  technologies:
+                                      InterviewConstants.interviewTracks,
                                   selectedTechnology: selectedTechnology,
                                   onTechnologySelected: (technology) {
-                                    context.read<InterviewSetupBloc>().add(TechnologySelected(technology));
+                                    context.read<InterviewSetupBloc>().add(
+                                      TechnologySelected(technology),
+                                    );
                                   },
                                 );
                               },
@@ -93,14 +109,21 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
                             //   onExperienceSelected: (value) {},
                             //   selectedExperience: "3-5 Years",
                             // ),
-                            BlocSelector<InterviewSetupBloc, InterviewSetupState, String?>(
+                            BlocSelector<
+                              InterviewSetupBloc,
+                              InterviewSetupState,
+                              String?
+                            >(
                               selector: (state) => state.selectedExperience,
                               builder: (context, selectedExperience) {
                                 return ExperienceSection(
-                                  experiences: InterviewConstants.experienceLevels,
+                                  experiences:
+                                      InterviewConstants.experienceLevels,
                                   selectedExperience: selectedExperience,
                                   onExperienceSelected: (experience) {
-                                    context.read<InterviewSetupBloc>().add(ExperienceSelected(experience));
+                                    context.read<InterviewSetupBloc>().add(
+                                      ExperienceSelected(experience),
+                                    );
                                   },
                                 );
                               },
@@ -112,7 +135,9 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
                             FocusAreaSection(
                               controller: _focusAreaController,
                               onChanged: (value) {
-                                context.read<InterviewSetupBloc>().add(FocusAreaChanged(value));
+                                context.read<InterviewSetupBloc>().add(
+                                  FocusAreaChanged(value),
+                                );
                               },
                             ),
                           ],
@@ -122,23 +147,53 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
 
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
-                        child: BlocSelector<InterviewSetupBloc, InterviewSetupState, bool>(
-                          selector: (state) => state.isFormValid,
-                          builder: (context, isFormValid) {
-                            return AppButton(
-                              title: "Start Interview",
-                              onPressed: isFormValid
-                                  ? () {
-                                      // context.read<InterviewSetupBloc>().add(StartInterviewPressed());
-                                      final config = context.read<InterviewSetupBloc>().state.interviewConfig;
+                        child:
+                            BlocSelector<
+                              InterviewSetupBloc,
+                              InterviewSetupState,
+                              bool
+                            >(
+                              selector: (state) => state.isFormValid,
+                              builder: (context, isFormValid) {
+                                return AppButton(
+                                  title: "Start Interview",
+                                  onPressed: isFormValid
+                                      ? () {
+                                          // context.read<InterviewSetupBloc>().add(StartInterviewPressed());
+                                          final config = context
+                                              .read<InterviewSetupBloc>()
+                                              .state
+                                              .interviewConfig;
 
-                                      debugPrint("$config");
-                                    }
-                                  : null,
-                              icon: const Icon(Icons.arrow_forward_ios),
-                            );
-                          },
-                        ),
+                                          debugPrint(
+                                            "Starting interview with config: $config",
+                                          );
+
+                                          Navigator.pushNamed(
+                                            context,
+                                            AppRoutes.questions,
+                                            arguments: demoQuestions
+                                                .map(
+                                                  (e) => QuestionAnswerEntity(
+                                                    id: e['id'] as int,
+                                                    question:
+                                                        e['question'] as String,
+                                                    durationSeconds:
+                                                        e['durationSeconds']
+                                                            as int,
+                                                    difficulty:
+                                                        e['difficulty']
+                                                            as String,
+                                                  ),
+                                                )
+                                                .toList(),
+                                          );
+                                        }
+                                      : null,
+                                  icon: const Icon(Icons.arrow_forward_ios),
+                                );
+                              },
+                            ),
                       ),
                     ],
                   ),
