@@ -45,5 +45,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+		<string>This app requires microphone access for interview recording.</string>
+
+		<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app requires speech recognition access.</string>
 </dict>
 </plist>

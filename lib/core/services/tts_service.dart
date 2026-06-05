@@ -23,7 +23,7 @@ class TtsService {
       _status = TtsStatus.initializing;
 
       await _tts.setLanguage('en-US');
-      await _tts.setSpeechRate(0.80);
+      await _tts.setSpeechRate(0.40);
       await _tts.setVolume(1.0);
       await _tts.setPitch(0.85);
 
@@ -57,11 +57,7 @@ class TtsService {
     }
   }
 
-  Future<void> speak({
-    required String text,
-    VoidCallback? onCompleted,
-    ValueChanged<String>? onError,
-  }) async {
+  Future<void> speak({required String text, VoidCallback? onCompleted, ValueChanged<String>? onError}) async {
     if (text.trim().isEmpty) {
       return;
     }
