@@ -17,19 +17,16 @@ final sl = GetIt.instance;
 Future<void> init() async {
   /// Service
   sl.registerLazySingleton(() => GeminiService());
-  // sl.registerLazySingleton(() => GeminiService());
 
   sl.registerFactory(() => TtsService());
   sl.registerFactory(() => SttService());
 
   /// Repository
   sl.registerLazySingleton<InterviewRepository>(() => InterviewRepositoryImpl(sl()));
-  // sl.registerLazySingleton<InterviewRepository>(() => InterviewRepositoryImpl(sl()));
 
   /// Bloc
   sl.registerFactory(() => InterviewBloc(sl()));
-  sl.registerFactory(() => InterviewSetupBloc(sl()));
-  // sl.registerFactory(() => InterviewBloc(sl()));
+  sl.registerFactory(() => InterviewSetupBloc());
 
   sl.registerFactoryParam<InterviewQuestionBloc, List<QuestionAnswerEntity>, void>(
     (questions, _) => InterviewQuestionBloc(questions: questions),
