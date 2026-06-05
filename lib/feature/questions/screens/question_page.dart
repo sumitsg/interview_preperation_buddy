@@ -142,6 +142,9 @@ class _QuestionPageState extends State<QuestionPage> {
             break;
 
           case TimerPhase.skipped:
+            if (_warningDialogVisible) {
+              Navigator.pop(context);
+            }
             await _resetInterviewState(context);
 
             context.read<InterviewQuestionBloc>().add(
@@ -185,7 +188,7 @@ class _QuestionPageState extends State<QuestionPage> {
               onPressed: () {
                 Navigator.pop(context);
 
-                _resetInterviewState(context);
+                context.read<QuestionTimerBloc>().add(const SkipQuestion());
               },
               child: const Text('Skip'),
             ),
