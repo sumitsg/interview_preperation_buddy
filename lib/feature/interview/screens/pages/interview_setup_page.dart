@@ -18,6 +18,7 @@ import 'package:interview_preperation_buddy/feature/interview/screens/widgets/te
 import 'package:interview_preperation_buddy/feature/questions/entity/question_answer_entity.dart'
     show QuestionAnswerEntity;
 import 'package:interview_preperation_buddy/shared/widgets/app_button.dart';
+import 'package:interview_preperation_buddy/shared/widgets/app_snackbar.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_text.dart';
 import 'package:interview_preperation_buddy/shared/widgets/responsive_container.dart';
 
@@ -128,11 +129,14 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
                                 child: BlocConsumer<InterviewSetupBloc, InterviewSetupState>(
                                   listener: (context, state) {
                                     if (state.questions.isNotEmpty) {
-                                      Navigator.push(
+                                      Navigator.pushNamed(
                                         context,
-                                        MaterialPageRoute(builder: (context) => EvaluationPage()),
+                                        AppRoutes.questions,
+                                        arguments: QuestionAnswerEntity.fromInterviewQuestion(data: state.questions),
                                       );
-                                    } else {}
+                                    } else if (state.error != null) {
+                                      AppSnackbar.showError(context, "AI interviewer is currently unavailable.");
+                                    }
                                   },
                                   // selector: (state) => [state.isFormValid, state.isLoading],
                                   builder: (context, state) {

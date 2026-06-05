@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/core/enums/answer_phase.dart';
 import 'package:interview_preperation_buddy/core/enums/tts_state.dart';
+import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_bloc.dart';
 import 'package:interview_preperation_buddy/feature/interview/widgets/recording_wave.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_event.dart';
@@ -38,6 +39,13 @@ class _QuestionPageState extends State<QuestionPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeAndSpeakInitialQuestion();
     });
+
+    // final config = context.read<InterviewSetupBloc>().state.interviewConfig;
+    // final technology = config['technology'] as String;
+    // final experience = config['experience'] as String;
+    // final focusArea = config['focusArea'] as String;
+    // //
+    // debugPrint('Interview Config - Technology: $technology, Experience: $experience, Focus Area: $focusArea');
   }
 
   Future<void> _initializeAndSpeakInitialQuestion() async {
@@ -70,11 +78,9 @@ class _QuestionPageState extends State<QuestionPage> {
     );
   }
 
-  BlocListener<InterviewQuestionBloc, InterviewQuestionState>
-  _questionChangeListener() {
+  BlocListener<InterviewQuestionBloc, InterviewQuestionState> _questionChangeListener() {
     return BlocListener<InterviewQuestionBloc, InterviewQuestionState>(
-      listenWhen: (previous, current) =>
-          previous.currentIndex != current.currentIndex,
+      listenWhen: (previous, current) => previous.currentIndex != current.currentIndex,
       listener: (context, state) {
         final question = state.currentQuestion;
 
@@ -91,9 +97,7 @@ class _QuestionPageState extends State<QuestionPage> {
 
   BlocListener<TtsCubit, TtsState> _ttsListener() {
     return BlocListener<TtsCubit, TtsState>(
-      listenWhen: (previous, current) =>
-          previous.status == TtsStatus.speaking &&
-          current.status == TtsStatus.completed,
+      listenWhen: (previous, current) => previous.status == TtsStatus.speaking && current.status == TtsStatus.completed,
       listener: (context, state) {
         context.read<QuestionTimerBloc>().add(StartQuestionFlow());
       },
@@ -114,17 +118,11 @@ class _QuestionPageState extends State<QuestionPage> {
           case TimerPhase.skipped:
             context.read<QuestionSttBloc>().add(CancelListening());
 
-            context.read<InterviewQuestionBloc>().add(
-              SkipInterviewQuestionQuestion(),
-            );
+            context.read<InterviewQuestionBloc>().add(SkipInterviewQuestionQuestion());
             break;
 
           case TimerPhase.completed:
-            final transcript = context
-                .read<QuestionSttBloc>()
-                .state
-                .transcript
-                .trim();
+            final transcript = context.read<QuestionSttBloc>().state.transcript.trim();
 
             context.read<QuestionSttBloc>().add(CancelListening());
 
@@ -152,10 +150,7 @@ class _QuestionPageState extends State<QuestionPage> {
             },
             child: const Text('Skip'),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Continue'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Continue')),
         ],
       ),
     );
@@ -199,16 +194,9 @@ class _QuestionView extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color: Colors.red.shade50,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.red.shade200,
-                                        ),
+                                        border: Border.all(color: Colors.red.shade200),
                                       ),
-                                      child: Text(
-                                        sttState.error!,
-                                        style: TextStyle(
-                                          color: Colors.red.shade800,
-                                        ),
-                                      ),
+                                      child: Text(sttState.error!, style: TextStyle(color: Colors.red.shade800)),
                                     ),
                                     const SizedBox(height: 16),
                                   ],
@@ -245,8 +233,7 @@ class InterviewFlowListener extends StatelessWidget {
     return MultiBlocListener(
       listeners: [
         BlocListener<InterviewQuestionBloc, InterviewQuestionState>(
-          listenWhen: (previous, current) =>
-              previous.currentIndex != current.currentIndex,
+          listenWhen: (previous, current) => previous.currentIndex != current.currentIndex,
           listener: (context, state) {
             final question = state.currentQuestion;
 
@@ -259,9 +246,7 @@ class InterviewFlowListener extends StatelessWidget {
             context.read<TtsCubit>().speak(question.question);
             Future.delayed(const Duration(milliseconds: 200));
 
-            context.read<QuestionSttBloc>().add(
-              const StartListening(listenDuration: 300),
-            );
+            context.read<QuestionSttBloc>().add(const StartListening(listenDuration: 300));
           },
         ),
       ],

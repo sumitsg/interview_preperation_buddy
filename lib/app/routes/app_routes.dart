@@ -23,7 +23,11 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const InterviewSetupPage(), settings: settings);
 
       case AppRoutes.evaluation:
-        return MaterialPageRoute(builder: (_) => const EvaluationPage(), settings: settings);
+        final args = settings.arguments as EvaluationPageArgs;
+        return MaterialPageRoute(
+          builder: (_) => EvaluationPage(args: args),
+          settings: settings,
+        );
 
       case AppRoutes.questions:
         final args = settings.arguments as List<QuestionAnswerEntity>;

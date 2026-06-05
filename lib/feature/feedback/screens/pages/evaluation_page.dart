@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/app/routes/app_routes.dart';
@@ -15,10 +18,15 @@ import 'package:interview_preperation_buddy/feature/feedback/screens/widgets/eva
 import 'package:interview_preperation_buddy/feature/feedback/screens/widgets/executive_summary_card.dart';
 import 'package:interview_preperation_buddy/feature/feedback/screens/widgets/focus_area_widget.dart';
 import 'package:interview_preperation_buddy/feature/interview/screens/widgets/interview_setup_header.dart';
+import 'package:interview_preperation_buddy/feature/questions/entity/question_answer_entity.dart';
+import 'package:interview_preperation_buddy/shared/widgets/app_snackbar.dart';
 import 'package:interview_preperation_buddy/shared/widgets/responsive_container.dart';
 
 class EvaluationPage extends StatefulWidget {
-  const EvaluationPage({super.key});
+  EvaluationPage({super.key, required this.args});
+
+  //
+  EvaluationPageArgs args;
 
   @override
   State<EvaluationPage> createState() => _EvaluationPageState();
@@ -61,8 +69,18 @@ class _EvaluationPageState extends State<EvaluationPage> {
 }
 ''';
 
+    final List<Map<String, dynamic>> payload = widget.args.questionAndAnswer.map((e) => e.toJson()).toList();
+
+    // log('Payload for Evaluation: $payload');
+
+    log(jsonEncode(payload));
+
     context.read<EvaluateInterviewBloc>().add(
-      EvaluateInterview(technology: "Flutter", experience: "5", questionAndAnswer: testJson),
+      EvaluateInterview(
+        technology: widget.args.technology,
+        experience: widget.args.experience,
+        questionAndAnswer: payload.toString(),
+      ),
     );
   }
 
@@ -80,13 +98,17 @@ class _EvaluationPageState extends State<EvaluationPage> {
               //
               Expanded(
                 child: SingleChildScrollView(
-                  child: BlocBuilder<EvaluateInterviewBloc, EvaluateInterviewState>(
+                  child: BlocConsumer<EvaluateInterviewBloc, EvaluateInterviewState>(
+                    listener: (context, state) {
+                      if (state.evaluation == null || state.error != null) {
+                        AppSnackbar.showError(context, "AI interviewer is currently unavailable.");
+                      }
+                    },
                     builder: (context, state) {
                       if (state.isLoading) {
                         return Center(child: CircularProgressIndicator(color: AppColors.primary));
-                      } else if (state.evaluation == null) {
-                        return SizedBox();
                       }
+
                       final data = state.evaluation;
                       return ResponsiveContainer(
                         child: Column(
@@ -142,4 +164,12 @@ class _EvaluationPageState extends State<EvaluationPage> {
       ),
     );
   }
+}
+
+class EvaluationPageArgs {
+  final String technology;
+  final String experience;
+  final List<QuestionAnswerEntity> questionAndAnswer;
+
+  EvaluationPageArgs({required this.technology, required this.experience, required this.questionAndAnswer});
 }
