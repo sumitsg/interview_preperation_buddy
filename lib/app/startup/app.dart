@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/app/themes/app_theme.dart';
-import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
-import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_bloc.dart';
-import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_bloc.dart';
-import 'package:interview_preperation_buddy/feature/questions/controllers/tts_bloc/tts_cubit.dart';
-import 'package:interview_preperation_buddy/feature/questions/entity%20/question_answer_entity.dart';
-import 'package:interview_preperation_buddy/feature/questions/screens/question_page.dart';
+import 'package:interview_preperation_buddy/feature/interview/screens/pages/interview_setup_page.dart';
 import '../../feature/interview/bloc/interview_bloc.dart';
+import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_bloc.dart';
+
 import '../di/injection_container.dart';
 
 class MyApp extends StatelessWidget {
@@ -19,35 +16,14 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<InterviewBloc>(create: (_) => sl<InterviewBloc>()),
+        BlocProvider<InterviewSetupBloc>(
+          create: (_) => sl<InterviewSetupBloc>(),
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: AppTheme.lightTheme,
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<TtsCubit>(create: (_) => sl<TtsCubit>()),
-            BlocProvider<QuestionSttBloc>(create: (_) => sl<QuestionSttBloc>()),
-            BlocProvider<QuestionTimerBloc>(
-              create: (_) => sl<QuestionTimerBloc>(),
-            ),
-            BlocProvider<InterviewQuestionBloc>(
-              create: (_) => sl<InterviewQuestionBloc>(
-                param1: demoQuestions
-                    .map(
-                      (e) => QuestionAnswerEntity(
-                        id: e['id'] as int,
-                        question: e['question'] as String,
-                        durationSeconds: e['durationSeconds'] as int,
-                        difficulty: e['difficulty'] as String,
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ],
-
-          child: QuestionPage(),
-        ),
+        home: const InterviewSetupPage(),
       ),
     );
   }

@@ -58,4 +58,7 @@ class AppTextStyles {
   // Button
   static TextStyle get button =>
       GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textOnPrimary, letterSpacing: 0.3);
+
+  static TextStyle get sectionTitle =>
+      GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary, height: 1.5);
 }

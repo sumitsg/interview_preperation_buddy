@@ -6,6 +6,7 @@ import 'package:interview_preperation_buddy/feature/questions/controllers/questi
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/tts_bloc/tts_cubit.dart';
 import 'package:interview_preperation_buddy/feature/questions/entity%20/question_answer_entity.dart';
+import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_bloc.dart';
 
 import '../../core/services/gemini_service.dart';
 import '../../feature/interview/bloc/interview_bloc.dart';
@@ -16,6 +17,7 @@ final sl = GetIt.instance;
 Future<void> init() async {
   /// Service
   sl.registerLazySingleton(() => GeminiService());
+  sl.registerLazySingleton(() => GeminiService());
 
   sl.registerFactory(() => TtsService());
   sl.registerFactory(() => SttService());
@@ -24,8 +26,11 @@ Future<void> init() async {
   sl.registerLazySingleton<InterviewRepository>(
     () => InterviewRepositoryImpl(sl()),
   );
+  sl.registerLazySingleton<InterviewRepository>(() => InterviewRepositoryImpl(sl()));
 
   /// Bloc
+  sl.registerFactory(() => InterviewBloc(sl()));
+  sl.registerFactory(() => InterviewSetupBloc());
   sl.registerFactory(() => InterviewBloc(sl()));
 
   sl.registerFactoryParam<
@@ -38,3 +43,4 @@ Future<void> init() async {
   sl.registerFactory<QuestionSttBloc>(() => QuestionSttBloc());
   sl.registerFactory<QuestionTimerBloc>(() => QuestionTimerBloc());
 }
+
