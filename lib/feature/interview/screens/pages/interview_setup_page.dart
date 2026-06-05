@@ -11,7 +11,7 @@ import 'package:interview_preperation_buddy/feature/interview/screens/widgets/ex
 import 'package:interview_preperation_buddy/feature/interview/screens/widgets/interview_setup_header.dart';
 import 'package:interview_preperation_buddy/feature/interview/screens/widgets/special_focus_area.dart';
 import 'package:interview_preperation_buddy/feature/interview/screens/widgets/technology_section.dart';
-import 'package:interview_preperation_buddy/feature/questions/entity%20/question_answer_entity.dart'
+import 'package:interview_preperation_buddy/feature/questions/entity/question_answer_entity.dart'
     show QuestionAnswerEntity;
 import 'package:interview_preperation_buddy/shared/widgets/app_button.dart';
 import 'package:interview_preperation_buddy/shared/widgets/app_text.dart';

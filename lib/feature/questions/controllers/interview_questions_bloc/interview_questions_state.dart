@@ -1,4 +1,4 @@
-import 'package:interview_preperation_buddy/feature/questions/entity%20/question_answer_entity.dart';
+import 'package:interview_preperation_buddy/feature/questions/entity/question_answer_entity.dart';
 
 class InterviewQuestionState {
   final List<QuestionAnswerEntity> questions;

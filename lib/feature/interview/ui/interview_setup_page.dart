@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
-
 import '../../../app/di/injection_container.dart';
 import '../../repo/interview_repository.dart';
 import '../bloc/interview_bloc.dart';
