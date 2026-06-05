@@ -65,4 +65,6 @@ class TtsCubit extends Cubit<TtsState> {
     await _ttsService.stop();
     return super.close();
   }
+
+  void reset() {}
 }

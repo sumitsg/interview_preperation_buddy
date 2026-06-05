@@ -49,4 +49,17 @@ class QuestionTimerState extends Equatable {
     noSpeechSeconds,
     hasSpoken,
   ];
+
+  @override
+  String toString() {
+    return '''
+QuestionTimerState(
+  phase: $phase,
+  remainingSeconds: $remainingSeconds,
+  answerRemainingSeconds: $answerRemainingSeconds,
+  noSpeechSeconds: $noSpeechSeconds,
+  hasSpoken: $hasSpoken
+)
+''';
+  }
 }

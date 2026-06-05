@@ -1,13 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/core/enums/answer_phase.dart';
 import 'package:interview_preperation_buddy/core/enums/tts_state.dart';
-import 'package:interview_preperation_buddy/feature/feedback/screens/pages/evaluation_page.dart';
-import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
-import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_event.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_state.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_event.dart';
@@ -22,8 +17,6 @@ import 'package:interview_preperation_buddy/feature/questions/widgets/question_c
 import 'package:interview_preperation_buddy/feature/questions/widgets/recording_panel.dart';
 import 'package:interview_preperation_buddy/shared/widgets/responsive_widget.dart';
 
-enum QuestionUiState { ttsPlaying, readyToAnswer, recording, recordingStopped }
-
 class QuestionPage extends StatefulWidget {
   const QuestionPage({super.key});
 
@@ -33,7 +26,6 @@ class QuestionPage extends StatefulWidget {
 
 class _QuestionPageState extends State<QuestionPage> {
   var _hasSpokenInitialQuestion = false;
-  bool _warningDialogVisible = false;
 
   @override
   void initState() {
@@ -41,13 +33,11 @@ class _QuestionPageState extends State<QuestionPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeAndSpeakInitialQuestion();
     });
+  }
 
-    // final config = context.read<InterviewSetupBloc>().state.interviewConfig;
-    // final technology = config['technology'] as String;
-    // final experience = config['experience'] as String;
-    // final focusArea = config['focusArea'] as String;
-    // //
-    // debugPrint('Interview Config - Technology: $technology, Experience: $experience, Focus Area: $focusArea');
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   Future<void> _initializeAndSpeakInitialQuestion() async {
@@ -71,6 +61,7 @@ class _QuestionPageState extends State<QuestionPage> {
     context.read<QuestionSttBloc>().add(CancelListening());
 
     await ttsCubit.speak(question.question);
+    if (!mounted) return;
     _hasSpokenInitialQuestion = true;
   }
 
@@ -92,15 +83,13 @@ class _QuestionPageState extends State<QuestionPage> {
 
         if (question == null) return;
 
-        context.read<QuestionTimerBloc>().add(const ResetTimerFlow());
+        _resetQuestionState();
 
-        context.read<QuestionSttBloc>().add(CancelListening());
+        await context.read<TtsCubit>().stop();
 
-        await context.read<TtsCubit>().stop().then((_) async {
-          if (context.mounted) {
-            await context.read<TtsCubit>().speak(question.question);
-          }
-        });
+        if (!context.mounted) return;
+
+        await context.read<TtsCubit>().speak(question.question);
       },
     );
   }
@@ -120,104 +109,18 @@ class _QuestionPageState extends State<QuestionPage> {
     return BlocListener<QuestionTimerBloc, QuestionTimerState>(
       listenWhen: (previous, current) => previous.phase != current.phase,
       listener: (context, state) async {
+        debugPrint(
+          'TimerListener => phase=${state.phase}, isRecording=${state.hasSpoken}',
+        );
         switch (state.phase) {
-          case TimerPhase.idle:
-            final question = context
-                .read<InterviewQuestionBloc>()
-                .state
-                .currentQuestion;
+          case TimerPhase.answering:
+            final sttState = context.read<QuestionSttBloc>().state;
 
-            if (question == null) return;
-
-            context.read<QuestionSttBloc>().add(
-              const StartListening(listenDuration: 300),
-            );
-
-            context.read<QuestionTimerBloc>().add(
-              StartRecording(Duration(seconds: question.durationSeconds)),
-            );
-
-            break;
-
-          case TimerPhase.speechWarning:
-            if (_warningDialogVisible) return;
-
-            _warningDialogVisible = true;
-
-            context.read<QuestionSttBloc>().add(StopListening());
-
-            await _showSpeechWarningDialog(context);
-
-            _warningDialogVisible = false;
-
-            break;
-
-          case TimerPhase.skipped:
-            if (_warningDialogVisible) {
-              Navigator.pop(context);
-            }
-            await _resetInterviewState(context);
-
-            context.read<InterviewQuestionBloc>().add(
-              SkipInterviewQuestionQuestion(),
-            );
-
-            break;
-
-          case TimerPhase.completed:
-            final transcript = context
-                .read<QuestionSttBloc>()
-                .state
-                .transcript
-                .trim();
-
-            await _resetInterviewState(context);
-
-            context.read<InterviewQuestionBloc>().add(SubmitAnswer(transcript));
-
-            // call the api when on last page
-            if (context
-                    .read<InterviewQuestionBloc>()
-                    .state
-                    .currentQuestionNumber ==
-                5) {
-              //
-              final config = context
-                  .read<InterviewSetupBloc>()
-                  .state
-                  .interviewConfig;
-              final technology = config['technology'] as String;
-              final experience = config['experience'] as String;
-              final focusArea = config['focusArea'] as String;
-              //
-              log(
-                'Interview Config - Technology: $technology, Experience: $experience, Focus Area: $focusArea',
-              );
-
-              //
-              context.read<InterviewQuestionBloc>().state.questions.map(
-                (e) =>
-                    debugPrint('Question: ${e.question}, Answer: ${e.answer}'),
-              );
-
-              log(
-                "Navigating to evaluation page with collected data...${context.read<InterviewQuestionBloc>().state.questions}",
-              );
-
-              Navigator.pushNamed(
-                context,
-                '/evaluation',
-                arguments: EvaluationPageArgs(
-                  technology: technology,
-                  experience: experience,
-                  questionAndAnswer: context
-                      .read<InterviewQuestionBloc>()
-                      .state
-                      .questions,
-                ),
+            if (!sttState.isListening) {
+              context.read<QuestionSttBloc>().add(
+                const StartListening(listenDuration: 300),
               );
             }
-
             break;
 
           default:
@@ -227,42 +130,12 @@ class _QuestionPageState extends State<QuestionPage> {
     );
   }
 
-  Future<void> _showSpeechWarningDialog(BuildContext context) async {
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Time\'s almost up!'),
-          content: const Text('Please wrap up your answer.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
+  void _resetQuestionState() {
+    context.read<QuestionTimerBloc>().add(const ResetTimerFlow());
 
-                context.read<QuestionTimerBloc>().add(const SkipQuestion());
-              },
-              child: const Text('Skip'),
-            ),
+    context.read<QuestionSttBloc>().add(CancelListening());
 
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-
-                context.read<QuestionSttBloc>().add(
-                  const StartListening(listenDuration: 300),
-                );
-
-                context.read<QuestionTimerBloc>().add(
-                  const ContinueRecording(),
-                );
-              },
-              child: const Text('Continue'),
-            ),
-          ],
-        );
-      },
-    );
+    context.read<QuestionSttBloc>().add(const ResetStt());
   }
 }
 
@@ -337,14 +210,4 @@ class _QuestionView extends StatelessWidget {
       bottomNavigationBar: const QuestionBottomBar(),
     );
   }
-}
-
-Future<void> _resetInterviewState(BuildContext context) async {
-  await context.read<TtsCubit>().stop();
-
-  context.read<QuestionSttBloc>().add(CancelListening());
-
-  context.read<QuestionSttBloc>().add(const ResetStt());
-
-  context.read<QuestionTimerBloc>().add(const ResetTimerFlow());
 }

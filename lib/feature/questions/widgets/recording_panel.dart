@@ -146,11 +146,7 @@ class _StatusTile extends StatelessWidget {
             ? 'Completed'
             : 'Ready',
 
-      TimerPhase.speechWarning => 'Warning',
-
       TimerPhase.completed => 'Completed',
-
-      TimerPhase.skipped => 'Skipped',
     };
 
     return _StatTile(label: 'Status', value: status);
