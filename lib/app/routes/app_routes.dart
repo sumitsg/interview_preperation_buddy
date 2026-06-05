@@ -10,7 +10,7 @@ import 'package:interview_preperation_buddy/feature/questions/entity%20/question
 import 'package:interview_preperation_buddy/feature/questions/screens/question_page.dart';
 
 class AppRoutes {
-  static const String interview = '/interview';
+  static const String interview = '/';
   static const String questions = '/questions';
 }
 
