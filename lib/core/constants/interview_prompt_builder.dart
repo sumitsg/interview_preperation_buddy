@@ -82,6 +82,17 @@ SCORING RULES:
 
 ---
 
+LANGUAGE POLICY (STRICT)
+
+- Only English content is acceptable.
+- If any non-English text is detected:
+  • languageCheck = "NOT ACCEPTABLE"
+  • That specific answer/question must be scored as 0
+  • Do NOT include that answer in overall evaluation positively
+- If multiple languages are mixed, still treat as NOT ACCEPTABLE
+
+---
+
 READINESS LEVEL:
 
 0-39 → Not Ready
@@ -116,7 +127,7 @@ RESPONSE FORMAT:
   "missedTopics": [],
   "nextFocus": [],
 
-  "summary": ""
+  "summary": "",
 }
 
 ---
