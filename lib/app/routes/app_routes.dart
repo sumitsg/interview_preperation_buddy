@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/app/di/injection_container.dart';
-import 'package:interview_preperation_buddy/feature/interview/ui/interview_setup_page.dart';
+import 'package:interview_preperation_buddy/feature/interview/screens/pages/interview_setup_page.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_timer_bloc/question_timer_bloc.dart';
