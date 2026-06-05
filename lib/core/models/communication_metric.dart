@@ -16,4 +16,16 @@ class CommunicationMetrics {
     required this.averageWordsPerSentence,
     required this.confidenceScore,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'wordCount': wordCount,
+      'sentenceCount': sentenceCount,
+      'fillerWordCount': fillerWordCount,
+      'fillerRate': fillerRate,
+      'wordsPerMinute': wordsPerMinute,
+      'averageWordsPerSentence': averageWordsPerSentence,
+      'confidenceScore': confidenceScore,
+    };
+  }
 }

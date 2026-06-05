@@ -1,7 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/core/enums/answer_phase.dart';
 import 'package:interview_preperation_buddy/core/enums/tts_state.dart';
+import 'package:interview_preperation_buddy/feature/feedback/screens/pages/evaluation_page.dart';
+import 'package:interview_preperation_buddy/feature/interview/controller/interview_setup_bloc/interview_setup_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_event.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_state.dart';
@@ -37,6 +41,13 @@ class _QuestionPageState extends State<QuestionPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeAndSpeakInitialQuestion();
     });
+
+    // final config = context.read<InterviewSetupBloc>().state.interviewConfig;
+    // final technology = config['technology'] as String;
+    // final experience = config['experience'] as String;
+    // final focusArea = config['focusArea'] as String;
+    // //
+    // debugPrint('Interview Config - Technology: $technology, Experience: $experience, Focus Area: $focusArea');
   }
 
   Future<void> _initializeAndSpeakInitialQuestion() async {
@@ -165,6 +176,47 @@ class _QuestionPageState extends State<QuestionPage> {
             context.read<InterviewQuestionBloc>().add(SubmitAnswer(transcript));
 
             // call the api when on last page
+            if (context
+                    .read<InterviewQuestionBloc>()
+                    .state
+                    .currentQuestionNumber ==
+                5) {
+              //
+              final config = context
+                  .read<InterviewSetupBloc>()
+                  .state
+                  .interviewConfig;
+              final technology = config['technology'] as String;
+              final experience = config['experience'] as String;
+              final focusArea = config['focusArea'] as String;
+              //
+              log(
+                'Interview Config - Technology: $technology, Experience: $experience, Focus Area: $focusArea',
+              );
+
+              //
+              context.read<InterviewQuestionBloc>().state.questions.map(
+                (e) =>
+                    debugPrint('Question: ${e.question}, Answer: ${e.answer}'),
+              );
+
+              log(
+                "Navigating to evaluation page with collected data...${context.read<InterviewQuestionBloc>().state.questions}",
+              );
+
+              Navigator.pushNamed(
+                context,
+                '/evaluation',
+                arguments: EvaluationPageArgs(
+                  technology: technology,
+                  experience: experience,
+                  questionAndAnswer: context
+                      .read<InterviewQuestionBloc>()
+                      .state
+                      .questions,
+                ),
+              );
+            }
 
             break;
 

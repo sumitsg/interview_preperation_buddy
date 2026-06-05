@@ -1,4 +1,5 @@
 import 'package:interview_preperation_buddy/core/models/communication_metric.dart';
+import 'package:interview_preperation_buddy/core/models/interview_question_model.dart';
 
 class QuestionAnswerEntity {
   final int id;
@@ -26,5 +27,31 @@ class QuestionAnswerEntity {
       difficulty: difficulty,
       metrics: metrics,
     );
+  }
+
+  static List<QuestionAnswerEntity> fromInterviewQuestion({required List<InterviewQuestion> data}) {
+    return data
+        .map(
+          (e) => QuestionAnswerEntity(
+            id: e.id,
+            question: e.question,
+            answer: null,
+            durationSeconds: e.expectedTimeSeconds,
+            difficulty: e.difficulty,
+            metrics: null,
+          ),
+        )
+        .toList();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'question': question,
+      'answer': answer,
+      // 'durationSeconds': durationSeconds,
+      // 'difficulty': difficulty,
+      // 'metrics': metrics?.toJson(),
+    };
   }
 }

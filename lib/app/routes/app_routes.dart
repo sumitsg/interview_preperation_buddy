@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_preperation_buddy/app/di/injection_container.dart';
+import 'package:interview_preperation_buddy/feature/feedback/screens/pages/evaluation_page.dart';
 import 'package:interview_preperation_buddy/feature/interview/screens/pages/interview_setup_page.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/interview_questions_bloc/interview_questions_bloc.dart';
 import 'package:interview_preperation_buddy/feature/questions/controllers/question_stt_bloc/question_stt_bloc.dart';
@@ -12,14 +13,19 @@ import 'package:interview_preperation_buddy/feature/questions/screens/question_p
 class AppRoutes {
   static const String interview = '/';
   static const String questions = '/questions';
+  static const String evaluation = '/evaluation';
 }
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case AppRoutes.interview:
+        return MaterialPageRoute(builder: (_) => const InterviewSetupPage(), settings: settings);
+
+      case AppRoutes.evaluation:
+        final args = settings.arguments as EvaluationPageArgs;
         return MaterialPageRoute(
-          builder: (_) => const InterviewSetupPage(),
+          builder: (_) => EvaluationPage(args: args),
           settings: settings,
         );
 
@@ -31,15 +37,9 @@ class AppRouter {
           builder: (_) => MultiBlocProvider(
             providers: [
               BlocProvider<TtsCubit>(create: (_) => sl<TtsCubit>()),
-              BlocProvider<QuestionSttBloc>(
-                create: (_) => sl<QuestionSttBloc>(),
-              ),
-              BlocProvider<QuestionTimerBloc>(
-                create: (_) => sl<QuestionTimerBloc>(),
-              ),
-              BlocProvider<InterviewQuestionBloc>(
-                create: (_) => sl<InterviewQuestionBloc>(param1: args),
-              ),
+              BlocProvider<QuestionSttBloc>(create: (_) => sl<QuestionSttBloc>()),
+              BlocProvider<QuestionTimerBloc>(create: (_) => sl<QuestionTimerBloc>()),
+              BlocProvider<InterviewQuestionBloc>(create: (_) => sl<InterviewQuestionBloc>(param1: args)),
             ],
             child: const QuestionPage(),
           ),
@@ -47,8 +47,7 @@ class AppRouter {
 
       default:
         return MaterialPageRoute(
-          builder: (_) =>
-              const Scaffold(body: Center(child: Text('Route not found'))),
+          builder: (_) => const Scaffold(body: Center(child: Text('Route not found'))),
         );
     }
   }
