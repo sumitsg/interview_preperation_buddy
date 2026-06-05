@@ -30,4 +30,15 @@ class QuestionSttState extends Equatable {
 
   @override
   List<Object?> get props => [status, transcript, error];
+
+  @override
+  String toString() {
+    return '''
+QuestionTimerState(
+  status: ${status.name},
+  transcript: $transcript,
+  error: $error,
+)
+''';
+  }
 }
